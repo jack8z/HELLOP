@@ -1,0 +1,24 @@
+在cmd窗口中，进入到build目录，并运行以下命令：
+> cmake .. -G"MinGW Makefiles"
+
+或者：
+> cmake .. -G"MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+
+然后运行以下命令：
+> make
+
+
+使用VS2015编译(NMake)：
+> cmake .. -G"NMake Makefiles"
+或者：
+> cmake .. -G"NMake Makefiles" -DCMAKE_BUILD_TYPE=Release
+
+然后运行以下命令：
+> nmake
+
+
+使用VS2015编译：
+> cmake .. -G"Visual Studio 14 2015 Win64"
+
+然后运行以下命令：
+> msbuild.exe DemoDuiLib.sln /t:Rebuild /p:Configuration=Release

@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
+        <title>WebSocket测试</title>
+    </head>
+    <body>
+        <div id="box1">
+            <a href="javascript:start();">连接</a>
+        </div>
+        <div id="box2" style="margin-top:15px;">
+            <input type="text" id="txt_to_send"/>
+            <button id="btn_send" onclick="send()">发送</button>
+            <div id="v_received" style="margin-top:15px;border:1px solid #CCCCCC;padding:5px;width:600px;"></div>
+        </div>
+    </body>
+    <script type="text/javascript">
+        window.ws = null;
+        function start(){
+            window.ws = new WebSocket("ws://127.0.0.1:30303");
+
+            window.ws.onopen = function(e){
+                ws.send("I am the client and I am listening!");
+            };
+
+            window.ws.onmessage = function(e){
+                console.log("Client received a message", e);
+                $("#v_received").html(e.data);
+            };
+
+            window.ws.onclose = function(e){
+                console.log("Client notified socket has closed", e);
+            };
+        }
+
+        function send(){
+            let txt = $("#txt_to_send").val();
+            if(""==txt){
+                alert("待发送内容不能为空");
+                return;
+            }
+            if(window.ws){
+                window.ws.send(txt);
+            }else{
+                alert("尚未连接WebSocket!");
+            }
+        }
+    </script>
+</html>
