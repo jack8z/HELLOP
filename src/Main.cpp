@@ -1,10 +1,11 @@
 ﻿#pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <stdio.h>
-#include <process.h>
+#include "afxTodop.h"
 #include "MainFrameWnd.h"
 #include "TodopServer.h"
+
+#include "easylogging++.h"
+INITIALIZE_EASYLOGGINGPP
 
 // WebSocket服务的线程主体
 unsigned __stdcall TodopServerRun(void* pParam){

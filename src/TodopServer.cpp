@@ -1,6 +1,8 @@
 ﻿#include "TodopServer.h"
+#include "strsafe.h"
+#include "GdiplusPrintEngine.h"
 
-INITIALIZE_EASYLOGGINGPP
+#include "easylogging++.h"
 
 TodopServer::TodopServer() {
     m_port = 30303;
@@ -30,6 +32,9 @@ void TodopServer::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server
         << " and message: " << msg->get_payload()
         << std::endl;
 
+    // 返回的消息
+    std::string returnMsg = msg->get_payload();
+
     // check for a special command to instruct the server to stop listening so
     // it can be cleanly exited.
     if (msg->get_payload() == "stop-listening") {
@@ -38,12 +43,16 @@ void TodopServer::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server
     }
 
     if (msg->get_payload() == "do-print") {
-        DoPrint();
+        GdiplusPrintEngine printEngine;
+        printEngine.DoPrint();
+
+        // returnMsg = "print success";
+        returnMsg = todop_to_string(L"打印成功");
     }
 
     try {
         // write a new message
-        m_server.send(hdl, msg->get_payload(), msg->get_opcode());
+        m_server.send(hdl, returnMsg, msg->get_opcode());
     } catch (websocketpp::lib::error_code const & e) {
         LOG(ERROR) << "Echo failed because: " << e << "(" << e.message() << ")" << std::endl;
     }
@@ -56,66 +65,8 @@ void TodopServer::DoRun() {
     // Queues a connection accept operation
     m_server.start_accept();
 
+    LOG(DEBUG) << "TodopServer start:" << m_port << std::endl;
+
     // Start the Asio io_service run loop
     m_server.run();
-}
-
-int TodopServer::DoPrint(){
-    // Initialize GDI+.
-    GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
-    DWORD size;
-    HDC hdcPrint;
-
-    DOCINFO docInfo;
-    ZeroMemory(&docInfo, sizeof(docInfo));
-    docInfo.cbSize = sizeof(docInfo);
-    docInfo.lpszDocName = "GdiplusPrint";
-
-    // Get the size of the default printer name.
-    GetDefaultPrinter(NULL, &size);
-
-    // Allocate a buffer large enough to hold the printer name.
-    TCHAR* buffer = new TCHAR[size];
-
-    // Get the printer name.
-    if(!GetDefaultPrinter(buffer, &size))
-    {
-        LOG(DEBUG) << "GetDefaultPrinter Failure" << std::endl;
-    }
-    else
-    {
-        // Get a device context for the printer.
-        hdcPrint = CreateDC(NULL, buffer, NULL, NULL);
-
-        StartDoc(hdcPrint, &docInfo);
-        Graphics* graphics;
-        Pen* pen = new Pen(Color(255, 0, 0, 0));
-
-        StartPage(hdcPrint);
-        graphics = new Graphics(hdcPrint);
-        graphics->DrawRectangle(pen, 50, 50, 200, 300);
-        // graphics->DrawString(_T("您好，World!"));//http://blog.csdn.net/LorenLiu/article/details/2894170
-        delete graphics;
-        EndPage(hdcPrint);
-
-        StartPage(hdcPrint);
-        graphics = new Graphics(hdcPrint);
-        graphics->DrawEllipse(pen, 50, 50, 200, 300);
-        delete graphics;
-        EndPage(hdcPrint);
-
-        delete pen;
-        EndDoc(hdcPrint);
-
-        DeleteDC(hdcPrint);
-    }
-
-    delete buffer;
-
-    GdiplusShutdown(gdiplusToken);
-
-    return 0;
 }

@@ -1,30 +1,9 @@
 ﻿#pragma once
 
+#include "afxTodop.h"
+
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
-
-#include <functional>
-#include <string>
-#include <fstream>
-#include <windows.h>
-
-// gdi+ ++++++++++
-#define NOMINMAX
-#include <algorithm>
-namespace Gdiplus
-{
-  using std::min;
-  using std::max;
-};
-#ifndef ULONG_PTR   
-#define ULONG_PTR unsigned long* 
-#endif
-#include <gdiplus.h>
-using namespace Gdiplus;
-#pragma comment(lib, "gdiplus.lib")
-// gdi+ ----------
-
-#include "easylogging++.h"
 
 typedef websocketpp::server<websocketpp::config::asio> WebSocketServer;
 
@@ -38,7 +17,7 @@ public:
 
     void DoRun();
 
-    int DoPrint();
+    // int DoPrint();
 
 private:
     int m_port; // WebSocket服务的端口号，默认：30303.

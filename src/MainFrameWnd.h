@@ -1,7 +1,6 @@
 ﻿#pragma once
 
-#include <UIlib.h>
-#include <windows.h>
+#include "afxTodop.h"
 
 using namespace DuiLib;
 
