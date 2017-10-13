@@ -25,12 +25,18 @@ using namespace Gdiplus;
 class GdiplusPrintEngine
 {
 public:
-    GdiplusPrintEngine();
+    GdiplusPrintEngine(); // 取系统默认打印机
+    GdiplusPrintEngine(TString printerName);
     ~GdiplusPrintEngine();
     
     int DoPrint(); // 打印
+    std::list<TString> GetSystemFontFamilys(); // 获取系统字体列表
+
+private:
+    void initInstance(TString printerName); // 初始化实例
 
 private:
     TString m_printerName; // 打印机名称
     HDC m_hdcPrinter; // 打印机上下文件
+    ULONG_PTR m_gdiplusToken;
 };

@@ -12,6 +12,9 @@
 #include <stdio.h>
 #include <process.h>
 
+#include <sstream>
+#include <list>
+
 typedef std::wstring TString;
 
 // 将std:wstring转换为std::string

@@ -42,6 +42,23 @@ void TodopServer::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server
         return;
     }
 
+    if (msg->get_payload() == "get-fonts") {
+        GdiplusPrintEngine printEngine;
+        std::list<TString> fontList = printEngine.GetSystemFontFamilys();
+
+        TString fontsBuff;
+        for (std::list<TString>::iterator it=fontList.begin(); it!=fontList.end(); ++it) {
+            fontsBuff += *it;
+            if (it!=fontList.end()) {
+                fontsBuff += L",";
+            }
+        }
+
+        LOG(DEBUG) << fontsBuff << endl;
+
+        returnMsg = todop_to_string(fontsBuff);
+    }
+
     if (msg->get_payload() == "do-print") {
         GdiplusPrintEngine printEngine;
         printEngine.DoPrint();
