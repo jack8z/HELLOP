@@ -5,9 +5,11 @@ INCLUDE_DIRECTORIES("C:/apps/duilib/DuiLib")
 INCLUDE_DIRECTORIES("C:/OpenSSL-Win64/include")
 INCLUDE_DIRECTORIES("C:/apps/websocketpp")
 INCLUDE_DIRECTORIES("C:/apps/boost_1_65_1")
+INCLUDE_DIRECTORIES("C:/apps/zint-2.4.2/backend")
 
 LINK_DIRECTORIES("C:/apps/duilib/lib")
 LINK_DIRECTORIES("C:/apps/boost_1_65_1/lib64-msvc-14.0")
+LINK_DIRECTORIES("C:/apps/zint_2.4.2_x64_release")
 
 IF(WIN32)
     SET(CMAKE_CXX_STANDARD 11)
