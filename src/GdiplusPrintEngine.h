@@ -29,8 +29,9 @@ public:
     GdiplusPrintEngine(TString printerName);
     ~GdiplusPrintEngine();
     
-    int DoPrint(); // 打印
-    std::list<TString> GetSystemFontFamilys(); // 获取系统字体列表
+    int doPrint(); // 打印
+    std::list<TString> getSystemFontFamilys(); // 获取系统字体列表
+    std::list<TString> getLocalPrinters(); // 获取本机安装的打印机列表
 
 private:
     void initInstance(TString printerName); // 初始化实例

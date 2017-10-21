@@ -1,10 +1,10 @@
 ﻿#include "GdiplusPrintEngine.h"
 
+#include <exception>
 #include <Winspool.h>
 #include "Strsafe.h"
 
-#include <zint.h>
-#pragma comment(lib, "libzint.lib")
+#include "BarcodeRender.h"
 
 #include "easylogging++.h"
 
@@ -53,7 +53,7 @@ GdiplusPrintEngine::~GdiplusPrintEngine() {
 }
 
 
-int GdiplusPrintEngine::DoPrint() {
+int GdiplusPrintEngine::doPrint() {
     DOCINFO docInfo;
     ZeroMemory(&docInfo, sizeof(docInfo));
     docInfo.cbSize = sizeof(docInfo);
@@ -96,64 +96,15 @@ int GdiplusPrintEngine::DoPrint() {
         StartPage(m_hdcPrinter);
         graphics = new Graphics(m_hdcPrinter);
         graphics->DrawEllipse(pen, 10, 10, 200, 200);
+        
         // 绘制条码 +++
-		struct zint_symbol *pZintSymbol;pZintSymbol = ZBarcode_Create();
-		if(pZintSymbol != NULL)
-		{
-			LOG(DEBUG) << "pZintSymbol successfully created!\n" << std::endl;
-			
-			unsigned char buffer[] = {"886821653780468974"};
-			int retEncode = ZBarcode_Encode(pZintSymbol, buffer, 0);
-			LOG(DEBUG) << "ZBarcode_Encode : " << retEncode << std::endl;
-			int retBuffer = ZBarcode_Buffer(pZintSymbol, 0);
-			LOG(DEBUG) << "ZBarcode_Buffer : " << retBuffer << std::endl;
-			
-			Bitmap b(pZintSymbol->bitmap_width, pZintSymbol->bitmap_height, PixelFormat24bppRGB);
-			int row, column, i = 0;
-			for (row = 0; row < pZintSymbol->bitmap_height; row++) {
-				 for (column = 0; column < pZintSymbol->bitmap_width; column++) {
-					  unsigned int red = pZintSymbol->bitmap[i];
-					  unsigned int green = pZintSymbol->bitmap[i + 1];
-					  unsigned int blue = pZintSymbol->bitmap[i + 2];
-					  Color c(red, green, blue);
-					  b.SetPixel(column, row, c);
-					  i += 3;
-				 }
-			}
-			graphics->DrawImage(&b, 50, 210);
-		}
-		ZBarcode_Clear(pZintSymbol);
-        // 绘制条码 ---
+        BarcodeRender barcodeRender(graphics);
+        TString sid_content(L"886821653780468974");
+        barcodeRender.drawCode128Auto(sid_content, 50, 210);
 		// 绘制QR码 +++
-		pZintSymbol = ZBarcode_Create();
-		if(pZintSymbol != NULL)
-		{
-			LOG(DEBUG) << "pZintSymbol successfully created!\n" << std::endl;
-			
-			pZintSymbol->symbology = BARCODE_QRCODE;
-			//unsigned char buffer[] = {"886821653780468974,hello world~"};
-			TString buffer(L"“我打”诞生于2010年，是千牛服务平台上一款专门帮助中小淘宝卖家打单发货的应用软件，一直以来，它始终深耕于解决打印面单这一核心功能。这让它在该细分服务市场领域内立有一席之地。");
-			int retEncode = ZBarcode_Encode(pZintSymbol, (unsigned char *)todop_to_string(buffer).c_str(), 0);
-			LOG(DEBUG) << "ZBarcode_Encode : " << retEncode << std::endl;
-			int retBuffer = ZBarcode_Buffer(pZintSymbol, 0);
-			LOG(DEBUG) << "ZBarcode_Buffer : " << retBuffer << std::endl;
-			
-			Bitmap b(pZintSymbol->bitmap_width, pZintSymbol->bitmap_height, PixelFormat24bppRGB);
-			int row, column, i = 0;
-			for (row = 0; row < pZintSymbol->bitmap_height; row++) {
-				 for (column = 0; column < pZintSymbol->bitmap_width; column++) {
-					  unsigned int red = pZintSymbol->bitmap[i];
-					  unsigned int green = pZintSymbol->bitmap[i + 1];
-					  unsigned int blue = pZintSymbol->bitmap[i + 2];
-					  Color c(red, green, blue);
-					  b.SetPixel(column, row, c);
-					  i += 3;
-				 }
-			}
-			graphics->DrawImage(&b, 50, 350);
-		}
-		ZBarcode_Delete(pZintSymbol);
-        // 绘制QR码 ---
+        TString qr_content(L"“我打”诞生于2010年，是千牛服务平台上一款专门帮助中小淘宝卖家打单发货的应用软件，一直以来，它始终深耕于解决打印面单这一核心功能。这让它在该细分服务市场领域内立有一席之地。");
+        barcodeRender.drawQrcode(qr_content, 50, 350);
+
         delete graphics;
         EndPage(m_hdcPrinter);
 
@@ -173,7 +124,7 @@ int GdiplusPrintEngine::DoPrint() {
     return 0;
 }
 
-std::list<TString> GdiplusPrintEngine::GetSystemFontFamilys() {
+std::list<TString> GdiplusPrintEngine::getSystemFontFamilys() {
     std::list<TString> fontFamilyList;
 
     // 枚举所有安装的字体
@@ -202,4 +153,38 @@ std::list<TString> GdiplusPrintEngine::GetSystemFontFamilys() {
     delete []pFontFamily;
 
     return fontFamilyList;
+}
+
+std::list<TString> GdiplusPrintEngine::getLocalPrinters() {
+    std::list<TString> printerList;
+
+    LPBYTE pPrinterEnum;
+    DWORD pcbNeeded, pcbReturned;
+    PRINTER_INFO_2 *piTwo = NULL;
+
+    // get the list of printers installed on this system
+    EnumPrinters(PRINTER_ENUM_LOCAL, NULL, 2, NULL, 0, &pcbNeeded, &pcbReturned);
+
+    try {
+        pPrinterEnum = new BYTE[pcbNeeded];
+        if (!EnumPrinters(PRINTER_ENUM_LOCAL, NULL, 2, pPrinterEnum, pcbNeeded, &pcbNeeded, &pcbReturned)) {
+            throw exception("Could not Enumerate printers");
+        }
+
+        piTwo = (PRINTER_INFO_2 *)pPrinterEnum;
+
+        for (unsigned int i=0; i<pcbReturned; i++) {
+            std::string printerName(piTwo[i].pPrinterName);
+            printerList.push_back(todop_to_wstring(printerName));
+        }
+    } catch (...) {
+        LOG(ERROR) << "EnumPrinters Error " << std::endl;
+    }
+
+    if (pPrinterEnum) {
+        delete[] pPrinterEnum;
+        pPrinterEnum = NULL;
+    }
+
+    return printerList;
 }

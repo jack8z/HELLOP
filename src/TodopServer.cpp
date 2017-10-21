@@ -44,7 +44,7 @@ void TodopServer::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server
 
     if (msg->get_payload() == "get-fonts") {
         GdiplusPrintEngine printEngine;
-        std::list<TString> fontList = printEngine.GetSystemFontFamilys();
+        std::list<TString> fontList = printEngine.getSystemFontFamilys();
 
         TString fontsBuff;
         for (std::list<TString>::iterator it=fontList.begin(); it!=fontList.end(); ++it) {
@@ -59,9 +59,26 @@ void TodopServer::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server
         returnMsg = todop_to_string(fontsBuff);
     }
 
+    if (msg->get_payload() == "get-printers") {
+        GdiplusPrintEngine printEngine;
+        std::list<TString> printerList = printEngine.getLocalPrinters();
+
+        TString printersBuff;
+        for (std::list<TString>::iterator it=printerList.begin(); it!=printerList.end(); ++it) {
+            printersBuff += *it;
+            if (it!=printerList.end()) {
+                printersBuff += L",";
+            }
+        }
+
+        LOG(DEBUG) << printersBuff << endl;
+
+        returnMsg = todop_to_string(printersBuff);
+    }
+
     if (msg->get_payload() == "do-print") {
         GdiplusPrintEngine printEngine;
-        printEngine.DoPrint();
+        printEngine.doPrint();
 
         // returnMsg = "print success";
         returnMsg = todop_to_string(L"打印成功");
