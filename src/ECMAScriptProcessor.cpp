@@ -1,5 +1,7 @@
 ﻿#include "ECMAScriptProcessor.h"
 
+#include "dukglue/dukglue.h"
+
 ECMAScriptProcessor::ECMAScriptProcessor(Graphics* graphics) {
 	m_pGraphics = graphics;
 
@@ -33,8 +35,19 @@ ECMAScriptProcessor::~ECMAScriptProcessor() {
 }
 
 int ECMAScriptProcessor::initDuktape() {
-	duk_push_c_function(m_pDukContext, ECMAScriptProcessor::addToPrintText, DUK_VARARGS);
-	duk_put_global_string(m_pDukContext, "todop_addText");
+	dukglue_register_constructor<ECMAScriptProcessor, /* constructor args: */ const char*>(m_pDukContext, "Todop");
+	dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addToPrintText, "addText");
+
+	if (duk_peval_string(m_pDukContext,
+		"var gus = new Dog('Gus');"
+		"gus.bark();"
+		"print(gus.getName());")) {
+		// if an error occured while executing, print the stack trace
+		duk_get_prop_string(m_pDukContext, -1, "stack");
+		LOG(ERROR) << duk_safe_to_string(m_pDukContext, -1) << std::endl;
+		duk_pop(m_pDukContext);
+		return -1;
+	}
 
 	return 0;
 }
