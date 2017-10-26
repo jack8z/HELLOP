@@ -41,9 +41,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
     CPaintManagerUI::SetInstance(hInstance);
 
-    CDuiFrameWnd duiFrame;
-    duiFrame.Create(NULL, _T("测试"), UI_WNDSTYLE_FRAME, WS_EX_WINDOWEDGE);
-    duiFrame.CenterWindow();
-    duiFrame.ShowModal();
+    CMainFrameWnd mainFrame;
+    mainFrame.Create(NULL, _T("测试"), UI_WNDSTYLE_FRAME, WS_EX_WINDOWEDGE);
+    mainFrame.CenterWindow();
+    mainFrame.ShowModal();
     return 0;
 }

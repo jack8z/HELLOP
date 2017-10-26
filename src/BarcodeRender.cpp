@@ -3,11 +3,12 @@
 #include "easylogging++.h"
 
 BarcodeRender::BarcodeRender(Graphics* graphics) {
+    m_pGraphics = graphics;
+    
     m_pZintSymbol = ZBarcode_Create();
     if (NULL==m_pZintSymbol) {
         LOG(ERROR) << "m_pZintSymbol cannot created!\n" << std::endl;
     }
-    m_pGraphics = graphics;
 }
 
 BarcodeRender::~BarcodeRender() {

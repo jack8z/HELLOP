@@ -18,10 +18,10 @@ using namespace DuiLib;
     #endif
 #endif
 
-class CDuiFrameWnd : public WindowImplBase
+class CMainFrameWnd : public WindowImplBase
 {
 public:
-    virtual LPCTSTR     GetWindowClassName() const  { return _T("DUIMainFrame"); }
+    virtual LPCTSTR     GetWindowClassName() const  { return _T("MainFrameWnd"); }
     virtual CDuiString  GetSkinFile()               { return _T("main.xml"); }
     virtual CDuiString  GetSkinFolder()             { return _T(""); }
 };
