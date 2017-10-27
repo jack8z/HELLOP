@@ -16,6 +16,8 @@ public:
 	// 添加要打印的文本. style:文本的样式，JSON格式
 	void addText(TString text, double x, double y, TString style);
 
+	void printHello();
+
 private:
 	// 初始化Duktape，初始化后才能正常使用
 	int initDuktape();

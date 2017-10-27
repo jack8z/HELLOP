@@ -47,6 +47,10 @@ int ECMAScriptProcessor::initDuktape() {
 	return 0;
 }
 
+void ECMAScriptProcessor::printHello() {
+	LOG(DEBUG) << "hello duktape!" << std::endl;
+}
+
 void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
 	FILE *f;
     size_t len;
@@ -80,7 +84,8 @@ void ECMAScriptProcessor::_DO_RUN_RUN() {
 	push_file_as_string(fileName);
 
 	try {
-		dukglue_pcall_method<void>(m_pDukContext, this, "render");
+		// dukglue_pcall_method<void>(m_pDukContext, this, "render");
+		dukglue_pcall_method<void>(m_pDukContext, this, "printHello");
 	} catch(...) {
 		LOG(ERROR) << "Failed to run ECMAScript"  << std::endl;
 	}
