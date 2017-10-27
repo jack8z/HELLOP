@@ -10,11 +10,16 @@ public:
 	ECMAScriptProcessor(Graphics* graphics);
 	~ECMAScriptProcessor();
 
+	// 运行ECMAScript脚本，在GdiplusPrintEngine类里调用
+	void _DO_RUN_RUN();
+
+	// 添加要打印的文本. style:文本的样式，JSON格式
+	void addText(TString text, double x, double y, TString style);
+
+private:
 	// 初始化Duktape，初始化后才能正常使用
 	int initDuktape();
-	
-	// 添加要打印的文本. style:文本的样式，JSON格式
-	void addToPrintText(TString text, double x, double y, TString style);
+	void push_file_as_string(std::string fileName);
 	
 private:
 	duk_context *m_pDukContext;

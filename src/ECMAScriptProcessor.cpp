@@ -16,6 +16,8 @@ ECMAScriptProcessor::ECMAScriptProcessor(Graphics* graphics) {
 	// 创建字体
 	FontFamily fontFamily(L"微软雅黑");
 	m_pDefaultFont = new Font(&fontFamily, 12, FontStyleRegular, UnitPixel);
+
+	initDuktape();
 }
 
 ECMAScriptProcessor::~ECMAScriptProcessor() {
@@ -35,26 +37,51 @@ ECMAScriptProcessor::~ECMAScriptProcessor() {
 }
 
 int ECMAScriptProcessor::initDuktape() {
-	dukglue_register_constructor<ECMAScriptProcessor, /* constructor args: */ const char*>(m_pDukContext, "Todop");
-	dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addToPrintText, "addText");
-
-	if (duk_peval_string(m_pDukContext,
-		"var gus = new Dog('Gus');"
-		"gus.bark();"
-		"print(gus.getName());")) {
-		// if an error occured while executing, print the stack trace
-		duk_get_prop_string(m_pDukContext, -1, "stack");
-		LOG(ERROR) << duk_safe_to_string(m_pDukContext, -1) << std::endl;
-		duk_pop(m_pDukContext);
+	try {
+		dukglue_register_global(m_pDukContext, this, "todop");
+	} catch(...) {
+		LOG(ERROR) << "Failed to call dukglue_register_global()"  << std::endl;
 		return -1;
 	}
 
 	return 0;
 }
 
-void ECMAScriptProcessor::addToPrintText(TString text, double x, double y, TString style) {
+void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
+	FILE *f;
+    size_t len;
+    char buf[16384];
+
+    f = fopen(fileName.c_str(), "rb");
+    if (f) {
+		LOG(DEBUG) << "Success Open file : " << fileName << std::endl;
+
+        len = fread((void *) buf, 1, sizeof(buf), f);
+		fclose(f);
+
+		LOG(DEBUG) << "File Content : " << buf << std::endl;
+
+        duk_push_lstring(m_pDukContext, (const char *) buf, (duk_size_t) len);
+    } else {
+		LOG(ERROR) << "Failed to Open file : " << fileName << std::endl;
+        duk_push_undefined(m_pDukContext);
+    }
+}
+
+void ECMAScriptProcessor::addText(TString text, double x, double y, TString style) {
 	PointF pointF(x, y);
 	if (NULL!=m_pGraphics) {
-		m_pGraphics->DrawString(text, -1, m_pDefaultFont, pointF, m_pDefaultBrush);
+		m_pGraphics->DrawString(text.c_str(), -1, m_pDefaultFont, pointF, m_pDefaultBrush);
+	}
+}
+
+void ECMAScriptProcessor::_DO_RUN_RUN() {
+	std::string fileName("render.js");
+	push_file_as_string(fileName);
+
+	try {
+		dukglue_pcall_method<void>(m_pDukContext, this, "render");
+	} catch(...) {
+		LOG(ERROR) << "Failed to run ECMAScript"  << std::endl;
 	}
 }

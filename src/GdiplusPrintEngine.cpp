@@ -4,6 +4,7 @@
 #include <Winspool.h>
 #include "Strsafe.h"
 
+#include "ECMAScriptProcessor.h"
 #include "BarcodeRender.h"
 
 #include "easylogging++.h"
@@ -81,6 +82,7 @@ int GdiplusPrintEngine::doPrint() {
         FontFamily  fontFamily(L"微软雅黑");
         Font font(&fontFamily, 24, FontStyleRegular, UnitPixel);
 
+        // 第一页 +++
         StartPage(m_hdcPrinter);
         graphics = new Graphics(m_hdcPrinter);
         graphics->DrawRectangle(pen, 50, 310, 200, 300);
@@ -92,7 +94,9 @@ int GdiplusPrintEngine::doPrint() {
         graphics->DrawRectangle(pen, rectF);
         delete graphics;
         EndPage(m_hdcPrinter);
+        // 第一页 ---
 
+        // 第二页 +++
         StartPage(m_hdcPrinter);
         graphics = new Graphics(m_hdcPrinter);
         graphics->DrawEllipse(pen, 10, 10, 200, 200);
@@ -107,6 +111,17 @@ int GdiplusPrintEngine::doPrint() {
 
         delete graphics;
         EndPage(m_hdcPrinter);
+        // 第二页 ---
+
+        // 第三页 +++
+        StartPage(m_hdcPrinter);
+        graphics = new Graphics(m_hdcPrinter);
+        ECMAScriptProcessor *pScriptProcessor = new ECMAScriptProcessor(graphics);
+        pScriptProcessor->_DO_RUN_RUN();
+        delete pScriptProcessor;
+        delete graphics;
+        EndPage(m_hdcPrinter);
+        // 第三页 ---
 
         delete brush;
         delete pen;
