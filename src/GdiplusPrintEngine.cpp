@@ -117,7 +117,7 @@ int GdiplusPrintEngine::doPrint() {
         StartPage(m_hdcPrinter);
         graphics = new Graphics(m_hdcPrinter);
         ECMAScriptProcessor *pScriptProcessor = new ECMAScriptProcessor(graphics);
-        pScriptProcessor->_DO_RUN_RUN();
+        pScriptProcessor->doRun();
         delete pScriptProcessor;
         delete graphics;
         EndPage(m_hdcPrinter);

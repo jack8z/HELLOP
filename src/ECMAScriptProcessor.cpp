@@ -39,16 +39,18 @@ ECMAScriptProcessor::~ECMAScriptProcessor() {
 int ECMAScriptProcessor::initDuktape() {
 	try {
 		dukglue_register_global(m_pDukContext, this, "todop");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addText, "addText");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::log_debug, "log_debug");
 	} catch(...) {
-		LOG(ERROR) << "Failed to call dukglue_register_global()"  << std::endl;
+		LOG(ERROR) << "Failed to register c++ object and method!!"  << std::endl;
 		return -1;
 	}
 
 	return 0;
 }
 
-void ECMAScriptProcessor::printHello() {
-	LOG(DEBUG) << "hello duktape!" << std::endl;
+void ECMAScriptProcessor::log_debug(std::string text) {
+	LOG(DEBUG) << text << std::endl;
 }
 
 void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
@@ -58,12 +60,10 @@ void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
 
     f = fopen(fileName.c_str(), "rb");
     if (f) {
-		LOG(DEBUG) << "Success Open file : " << fileName << std::endl;
-
         len = fread((void *) buf, 1, sizeof(buf), f);
 		fclose(f);
 
-		LOG(DEBUG) << "File Content : " << buf << std::endl;
+		LOG(DEBUG) << "Js File( " << fileName << " ) size : " << len << std::endl;
 
         duk_push_lstring(m_pDukContext, (const char *) buf, (duk_size_t) len);
     } else {
@@ -72,20 +72,24 @@ void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
     }
 }
 
-void ECMAScriptProcessor::addText(TString text, double x, double y, TString style) {
+void ECMAScriptProcessor::addText(std::string text, double x, double y, std::string style) {
 	PointF pointF(x, y);
 	if (NULL!=m_pGraphics) {
-		m_pGraphics->DrawString(text.c_str(), -1, m_pDefaultFont, pointF, m_pDefaultBrush);
+		m_pGraphics->DrawString(todop_to_wstring(text).c_str(), -1, m_pDefaultFont, pointF, m_pDefaultBrush);
 	}
 }
 
-void ECMAScriptProcessor::_DO_RUN_RUN() {
+void ECMAScriptProcessor::doRun() {
 	std::string fileName("render.js");
 	push_file_as_string(fileName);
 
 	try {
-		// dukglue_pcall_method<void>(m_pDukContext, this, "render");
-		dukglue_pcall_method<void>(m_pDukContext, this, "printHello");
+		if (duk_peval(m_pDukContext) != 0) {
+			// if an error occured while executing, print the stack trace
+			duk_get_prop_string(m_pDukContext, -1, "stack");
+			LOG(ERROR) << "Duktape Error: " << duk_safe_to_string(m_pDukContext, -1) << std::endl;
+			duk_pop(m_pDukContext);
+		}
 	} catch(...) {
 		LOG(ERROR) << "Failed to run ECMAScript"  << std::endl;
 	}
