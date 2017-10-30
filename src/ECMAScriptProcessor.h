@@ -15,6 +15,16 @@ public:
 
 	// 添加要打印的文本. style:文本的样式，JSON格式
 	void addText(std::string text, double x, double y, std::string style);
+	// 添加要打印的线条. style:文本的样式，JSON格式
+	void addLine(double x1, double y1, double x2, double y2, std::string style);
+	// 添加要打印的长方形. style:文本的样式，JSON格式
+	void addRectangle(double x1, double y1, double x2, double y2, std::string style);
+	// 添加要打印的圆形. style:文本的样式，JSON格式
+	void addEllipse(double x1, double y1, double x2, double y2, std::string style);
+	// 添加要打印的条码. style:文本的样式，JSON格式
+	void addBarCode(std::string text, double x, double y, std::string style);
+	// 添加要打印的QR码. style:文本的样式，JSON格式
+	void addQrCode(std::string text, double x, double y, std::string style);
 
 	void log_debug(std::string text);
 

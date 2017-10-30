@@ -1,5 +1,6 @@
 ﻿#include "ECMAScriptProcessor.h"
 
+#include "BarcodeRender.h"
 #include "dukglue/dukglue.h"
 
 ECMAScriptProcessor::ECMAScriptProcessor(Graphics* graphics) {
@@ -39,8 +40,13 @@ ECMAScriptProcessor::~ECMAScriptProcessor() {
 int ECMAScriptProcessor::initDuktape() {
 	try {
 		dukglue_register_global(m_pDukContext, this, "todop");
-		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addText, "addText");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::log_debug, "log_debug");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addText, "addText");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addLine, "addLine");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addRectangle, "addRectangle");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addEllipse, "addEllipse");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addBarCode, "addBarCode");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addQrCode, "addQrCode");
 	} catch(...) {
 		LOG(ERROR) << "Failed to register c++ object and method!!"  << std::endl;
 		return -1;
@@ -76,6 +82,38 @@ void ECMAScriptProcessor::addText(std::string text, double x, double y, std::str
 	PointF pointF(x, y);
 	if (NULL!=m_pGraphics) {
 		m_pGraphics->DrawString(todop_to_wstring(text).c_str(), -1, m_pDefaultFont, pointF, m_pDefaultBrush);
+	}
+}
+
+void ECMAScriptProcessor::addLine(double x1, double y1, double x2, double y2, std::string style) {
+	if (NULL != m_pGraphics) {
+		m_pGraphics->DrawLine(m_pDefaultPen, (REAL)x1, (REAL)y1, (REAL)x2, (REAL)y2);
+	}
+}
+
+void ECMAScriptProcessor::addRectangle(double x1, double y1, double x2, double y2, std::string style) {
+	if (NULL != m_pGraphics) {
+		m_pGraphics->DrawRectangle(m_pDefaultPen, (REAL)x1, (REAL)y1, (REAL)x2, (REAL)y2);
+	}
+}
+
+void ECMAScriptProcessor::addEllipse(double x1, double y1, double x2, double y2, std::string style) {
+	if (NULL != m_pGraphics) {
+		m_pGraphics->DrawEllipse(m_pDefaultPen, (REAL)x1, (REAL)y1, (REAL)x2, (REAL)y2);
+	}
+}
+
+void ECMAScriptProcessor::addBarCode(std::string text, double x, double y, std::string style) {
+	if (NULL != m_pGraphics) {
+		BarcodeRender barcodeRender(m_pGraphics);
+		barcodeRender.drawCode128Auto(todop_to_wstring(text), x, y);
+	}
+}
+
+void ECMAScriptProcessor::addQrCode(std::string text, double x, double y, std::string style) {
+	if (NULL != m_pGraphics) {
+		BarcodeRender barcodeRender(m_pGraphics);
+		barcodeRender.drawQrcode(todop_to_wstring(text), x, y);
 	}
 }
 
