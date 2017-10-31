@@ -73,58 +73,13 @@ int GdiplusPrintEngine::doPrint() {
             return -2;
         }
 
-        StartDoc(m_hdcPrinter, &docInfo);
-        Graphics* graphics;
-        Pen* pen = new Pen(Color(255, 0, 0, 0));
-        SolidBrush *brush = new SolidBrush(Color(255, 0, 0, 255)); 
+        StartDoc(m_hdcPrinter, &docInfo);        
 
-        // 创建字体
-        FontFamily  fontFamily(L"微软雅黑");
-        Font font(&fontFamily, 24, FontStyleRegular, UnitPixel);
-
-        // 第一页 +++
-        StartPage(m_hdcPrinter);
-        graphics = new Graphics(m_hdcPrinter);
-        graphics->DrawRectangle(pen, 50, 310, 200, 300);
-        graphics->DrawLine(pen, 20, 10, 200, 100);
-        PointF pointF(10.0f, 20.0f);
-        graphics->DrawString(L"您好，World!", -1, &font, pointF, brush);
-        RectF rectF(30.0f, 100.0f, 300.0f, 200.0f); 
-        graphics->DrawString(L"从《英伦对决》到《追凶》，近期热映的影片无意间掀起了一股“老牌对战”的浪潮，不管是邦德气质的战斗，还是港片基因的对打，其实观众所追求的快感往往就是扣动扳机那一刻——或是带着激情碰撞的暴力，或是带着快意恩仇的狠绝。以下这些电影便会给你带来这最原始的撸片爽感，可谓一道又一道有滋有味的爆裂大餐。", -1, &font, rectF, NULL, brush);
-        graphics->DrawRectangle(pen, rectF);
-        delete graphics;
-        EndPage(m_hdcPrinter);
-        // 第一页 ---
-
-        // 第二页 +++
-        StartPage(m_hdcPrinter);
-        graphics = new Graphics(m_hdcPrinter);
-        graphics->DrawEllipse(pen, 10, 10, 200, 200);
-        
-        // 绘制条码 +++
-        BarcodeRender barcodeRender(graphics);
-        TString sid_content(L"886821653780468974");
-        barcodeRender.drawCode128Auto(sid_content, 50, 210);
-		// 绘制QR码 +++
-        TString qr_content(L"“我打”诞生于2010年，是千牛服务平台上一款专门帮助中小淘宝卖家打单发货的应用软件，一直以来，它始终深耕于解决打印面单这一核心功能。这让它在该细分服务市场领域内立有一席之地。");
-        barcodeRender.drawQrcode(qr_content, 50, 350);
-
-        delete graphics;
-        EndPage(m_hdcPrinter);
-        // 第二页 ---
-
-        // 第三页 +++
-        StartPage(m_hdcPrinter);
-        graphics = new Graphics(m_hdcPrinter);
-        ECMAScriptProcessor *pScriptProcessor = new ECMAScriptProcessor(graphics);
+		// 解析ECMAScript，并执行渲染指令
+        ECMAScriptProcessor *pScriptProcessor = new ECMAScriptProcessor(m_hdcPrinter);
         pScriptProcessor->doRun();
         delete pScriptProcessor;
-        delete graphics;
-        EndPage(m_hdcPrinter);
-        // 第三页 ---
 
-        delete brush;
-        delete pen;
         EndDoc(m_hdcPrinter);
 
         if (m_hdcPrinter) {

@@ -1,13 +1,13 @@
 ﻿#pragma once
 
 #include "afxTodop.h"
-#include "duktape.h"
+#include "dukglue/dukglue.h"
 
 #include "easylogging++.h"
 
 class ECMAScriptProcessor {
 public:
-	ECMAScriptProcessor(Graphics* graphics);
+	ECMAScriptProcessor(HDC hdcPrinter);
 	~ECMAScriptProcessor();
 
 	// 运行ECMAScript脚本，在GdiplusPrintEngine类里调用
@@ -25,6 +25,9 @@ public:
 	void addBarCode(std::string text, double x, double y, std::string style);
 	// 添加要打印的QR码. style:文本的样式，JSON格式
 	void addQrCode(std::string text, double x, double y, std::string style);
+	
+	// 添加新的页面
+	void addNewPage();
 
 	void log_debug(std::string text);
 
@@ -36,6 +39,8 @@ private:
 private:
 	duk_context *m_pDukContext;
 
+	HDC m_hdcPrinter; // 打印机上下文
+	
 	Graphics *m_pGraphics;
 	Pen *m_pDefaultPen; // 默认画笔
 	SolidBrush *m_pDefaultBrush; // 默认画刷

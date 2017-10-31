@@ -1,10 +1,10 @@
 ﻿#include "ECMAScriptProcessor.h"
-
 #include "BarcodeRender.h"
-#include "dukglue/dukglue.h"
 
-ECMAScriptProcessor::ECMAScriptProcessor(Graphics* graphics) {
-	m_pGraphics = graphics;
+ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
+	m_hdcPrinter = hdcPrinter;
+	StartPage(m_hdcPrinter);
+    m_pGraphics = new Graphics(m_hdcPrinter);
 
 	m_pDukContext = duk_create_heap_default();
 	if (!m_pDukContext) {
@@ -22,6 +22,17 @@ ECMAScriptProcessor::ECMAScriptProcessor(Graphics* graphics) {
 }
 
 ECMAScriptProcessor::~ECMAScriptProcessor() {
+	EndPage(m_hdcPrinter);
+	if (NULL!=m_pGraphics) {
+		delete m_pGraphics;
+	}
+	
+	try {
+		dukglue_invalidate_object(m_pDukContext, this);
+	} catch(...) {
+		LOG(ERROR) << "Failed to unregister c++ this object!!"  << std::endl;
+	}
+	
 	if (NULL!=m_pDukContext) {
 		duk_destroy_heap(m_pDukContext);
 	}
@@ -40,13 +51,14 @@ ECMAScriptProcessor::~ECMAScriptProcessor() {
 int ECMAScriptProcessor::initDuktape() {
 	try {
 		dukglue_register_global(m_pDukContext, this, "todop");
-		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::log_debug, "log_debug");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::log_debug, "debug");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addText, "addText");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addLine, "addLine");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addRectangle, "addRectangle");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addEllipse, "addEllipse");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addBarCode, "addBarCode");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addQrCode, "addQrCode");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addNewPage, "addNewPage");
 	} catch(...) {
 		LOG(ERROR) << "Failed to register c++ object and method!!"  << std::endl;
 		return -1;
@@ -79,8 +91,8 @@ void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
 }
 
 void ECMAScriptProcessor::addText(std::string text, double x, double y, std::string style) {
-	PointF pointF(x, y);
 	if (NULL!=m_pGraphics) {
+		PointF pointF(x, y);
 		m_pGraphics->DrawString(todop_to_wstring(text).c_str(), -1, m_pDefaultFont, pointF, m_pDefaultBrush);
 	}
 }
@@ -115,6 +127,17 @@ void ECMAScriptProcessor::addQrCode(std::string text, double x, double y, std::s
 		BarcodeRender barcodeRender(m_pGraphics);
 		barcodeRender.drawQrcode(todop_to_wstring(text), x, y);
 	}
+}
+
+void ECMAScriptProcessor::addNewPage() {
+	if (NULL != m_pGraphics) {
+		delete m_pGraphics;
+	}
+	
+	EndPage(m_hdcPrinter);
+	StartPage(m_hdcPrinter);
+	
+	m_pGraphics = new Graphics(m_hdcPrinter);
 }
 
 void ECMAScriptProcessor::doRun() {
