@@ -62,18 +62,22 @@ int GdiplusPrintEngine::doPrint() {
 
     // 如果打印机为空，则返回-1
     if (m_printerName.empty()) {
-        LOG(DEBUG) << "No Printer" << std::endl;
+        LOG(ERROR) << "No Printer" << std::endl;
         return -1;
     } else {
         // Get a device context for the printer.
         m_hdcPrinter = CreateDCW(NULL, m_printerName.c_str(), NULL, NULL);
     
         if (!m_hdcPrinter) { // 获取打印机上下文失败
-            LOG(DEBUG) << "CreateDC Failure" << std::endl;
+            LOG(ERROR) << "CreateDC Failure" << std::endl;
             return -2;
         }
 
-        StartDoc(m_hdcPrinter, &docInfo);        
+        int startResult = StartDoc(m_hdcPrinter, &docInfo);
+		if (startResult < 1) {
+            LOG(DEBUG) << "StartDoc Failure : " << startResult << std::endl;
+			return -3;
+		}
 
 		// 解析ECMAScript，并执行渲染指令
         ECMAScriptProcessor *pScriptProcessor = new ECMAScriptProcessor(m_hdcPrinter);
@@ -86,10 +90,6 @@ int GdiplusPrintEngine::doPrint() {
             DeleteDC(m_hdcPrinter);
         }
     }
-
-    // delete buffer;
-
-    // GdiplusShutdown(gdiplusToken);
 
     return 0;
 }

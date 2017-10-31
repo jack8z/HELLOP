@@ -16,7 +16,7 @@ ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
 
 	// 创建字体
 	FontFamily fontFamily(L"微软雅黑");
-	m_pDefaultFont = new Font(&fontFamily, 12, FontStyleRegular, UnitPixel);
+	m_pDefaultFont = new Font(&fontFamily, 12, FontStyleRegular, UnitPoint);
 
 	initDuktape();
 }

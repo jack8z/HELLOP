@@ -78,10 +78,13 @@ void TodopServer::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server
 
     if (msg->get_payload() == "do-print") {
         GdiplusPrintEngine printEngine;
-        printEngine.doPrint();
+        int printResult = printEngine.doPrint();
 
-        // returnMsg = "print success";
-        returnMsg = todop_to_string(L"打印成功");
+        if (printResult>=0) {
+			returnMsg = todop_to_string(L"打印成功");
+		} else {
+			returnMsg = todop_to_string(L"打印失败！");
+		}
     }
 
     try {
