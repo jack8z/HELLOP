@@ -7,10 +7,12 @@ INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third_party/websocketpp")
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third_party/boost_1_65_1")
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third_party/zint-2.4.2/backend")
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third_party/dukglue/include")
+INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third_party/litehtml/include")
 
 LINK_DIRECTORIES("${PROJECT_SOURCE_DIR}/third_party/duilib/lib64")
 LINK_DIRECTORIES("${PROJECT_SOURCE_DIR}/third_party/boost_1_65_1/lib64")
 LINK_DIRECTORIES("${PROJECT_SOURCE_DIR}/third_party/zint-2.4.2/lib64")
+LINK_DIRECTORIES("${PROJECT_SOURCE_DIR}/third_party/litehtml/lib64")
 
 IF(WIN32)
     SET(CMAKE_CXX_STANDARD 11)
