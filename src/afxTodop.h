@@ -15,6 +15,8 @@
 #include <sstream>
 #include <list>
 
+#define LITEHTML_UTF8
+
 typedef std::wstring TString;
 
 // 将std:wstring转换为std::string
