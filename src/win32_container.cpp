@@ -15,6 +15,21 @@ litehtml::win32_container::~win32_container()
 	}
 }
 
+void litehtml::win32_container::tokenize(const wchar_t* pSrc, litehtml::string_vector result, std::wstring delim) {
+	std::wstring strSrc(pSrc);
+	
+	std::wstring::size_type start=0, end=0;
+	while ( end != std::wstring::npos ) {
+		end = strSrc.find(delim, start);
+		
+		// If at end, use length=maxLength.  Else use length=end-start.
+		result.push_back(strSrc.substr(start,(end==std::wstring::npos) ? std::wstring::npos : end-start));
+		
+		// If at end, use start=maxSize.  Else use start=end+delimiter.
+		start = ((end>(std::wstring::npos-delim.size())) ? std::wstring::npos : end+delim.size());
+	}
+}
+
 litehtml::uint_ptr litehtml::win32_container::create_font( const wchar_t* faceName, int size, int weight, font_style italic, unsigned int decoration )
 {
 	litehtml::string_vector fonts;

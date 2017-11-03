@@ -61,5 +61,7 @@ namespace litehtml
 		virtual void		get_img_size(litehtml::uint_ptr img, litehtml::size& sz) = 0;
 		virtual void		draw_img(HDC hdc, litehtml::uint_ptr img, const litehtml::position& pos) = 0;
 		virtual void		draw_img_bg(HDC hdc, litehtml::uint_ptr img, const litehtml::position& draw_pos, const litehtml::position& pos, litehtml::background_repeat repeat, litehtml::background_attachment attachment) = 0;
+		
+		void				tokenize(const wchar_t* pSrc, litehtml::string_vector result, std::wstring delim);
 	};
 }
