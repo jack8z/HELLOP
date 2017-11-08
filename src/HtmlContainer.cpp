@@ -1,7 +1,7 @@
-#include "HtmlContainer.h"
+﻿#include "HtmlContainer.h"
 
-HtmlContainer::HtmlContainer(HDC hdcPrinter) {
-	m_hdcPrinter = hdcPrinter;
+HtmlContainer::HtmlContainer() {
+	// do nothing
 }
 
 HtmlContainer::~HtmlContainer() {
@@ -30,73 +30,44 @@ litehtml::uint_ptr HtmlContainer::create_font(const litehtml::tchar_t* faceName,
 			}
 		#endif
 	}
+
+	int fntStyle = FontStyle::FontStyleRegular;
+	fntStyle = fntStyle | (weight>=700 ? FontStyle::FontStyleBold : FontStyle::FontStyleRegular);
+	fntStyle = fntStyle | ((italic==litehtml::fontStyleItalic) ? FontStyleItalic : FontStyleRegular);
+	fntStyle = fntStyle | ((decoration & litehtml::font_decoration_linethrough) ? FontStyleStrikeout : FontStyleRegular);
+	fntStyle = fntStyle | ((decoration & litehtml::font_decoration_underline) ? FontStyleUnderline : FontStyleRegular);
+
+	FontFamily fontFamily(fnt_name.c_str());
+	Font* pFont = new Font(&fontFamily, size, fntStyle, UnitPoint);
+
+	return (litehtml::uint_ptr) pFont;
+}
+
+void HtmlContainer::delete_font( litehtml::uint_ptr hFont ) {
+	Font* pFont = (Font *) hFont;
+	delete pFont;
+}
+
+int HtmlContainer::text_width( const litehtml::tchar_t* text, litehtml::uint_ptr hFont )
+{
+	PointF pointF(0, 0);
+	RectF boundingBox;
+
+	HDC dc = GetDC(NULL);
+	Graphics g(dc);
+	g.MeasureString(utf8_to_wchar(text), -1, (Font *)hFont, pointF, StringFormat::GenericTypographic(), &boundingBox);
 	
-	LOGFONTW lf;
-	ZeroMemory(&lf, sizeof(lf));
-	wcscpy_s(lf.lfFaceName, LF_FACESIZE, fnt_name.c_str());
+	int width = (int)(boundingBox.GetRight() - boundingBox.GetLeft());
 
-	lf.lfHeight			= -size;
-	lf.lfWeight			= weight;
-	lf.lfItalic			= (italic == litehtml::fontStyleItalic) ? TRUE : FALSE;
-	lf.lfCharSet		= DEFAULT_CHARSET;
-	lf.lfOutPrecision	= OUT_DEFAULT_PRECIS;
-	lf.lfClipPrecision	= CLIP_DEFAULT_PRECIS;
-	lf.lfQuality		= DEFAULT_QUALITY;
-	lf.lfStrikeOut		= (decoration & litehtml::font_decoration_linethrough) ? TRUE : FALSE;
-	lf.lfUnderline		= (decoration & litehtml::font_decoration_underline) ? TRUE : FALSE;
-	HFONT hFont = CreateFontIndirectW(&lf);
-
-	if (fm) {/*
-		fm->ascent		= fnt->metrics().ascent;
-		fm->descent		= fnt->metrics().descent;
-		fm->height		= fnt->metrics().height;
-		fm->x_height	= fnt->metrics().x_height;
-		if(italic == litehtml::fontStyleItalic || decoration)
-		{
-			fm->draw_spaces = true;
-		} else
-		{
-			fm->draw_spaces = false;
-		}*/
-	}
-
-	return (litehtml::uint_ptr) hFont;
+	return width;
 }
 
-void HtmlContainer::delete_font( litehtml::uint_ptr hFont )
+void HtmlContainer::draw_text( litehtml::uint_ptr hdc, const litehtml::tchar_t* text, litehtml::uint_ptr hFont, litehtml::web_color color, const litehtml::position& pos )
 {
-	DeleteObject((HFONT) hFont);
-}
-
-int HtmlContainer::text_width( litehtml::uint_ptr hdc, const wchar_t* text, litehtml::uint_ptr hFont )
-{
-	HFONT oldFont = (HFONT) SelectObject((HDC) hdc, (HFONT) hFont);
-
-	SIZE sz = {0, 0};
-
-	GetTextExtentPoint32W((HDC) hdc, text, lstrlenW(text), &sz);
-
-	SelectObject((HDC) hdc, oldFont);
-
-	return (int) sz.cx;
-}
-
-void HtmlContainer::draw_text( litehtml::uint_ptr hdc, const wchar_t* text, litehtml::uint_ptr hFont, litehtml::web_color color, const litehtml::position& pos )
-{
-	apply_clip((HDC) hdc);
-
-	HFONT oldFont = (HFONT) SelectObject((HDC) hdc, (HFONT) hFont);
-
-	SetBkMode((HDC) hdc, TRANSPARENT);
-
-	SetTextColor((HDC) hdc, RGB(color.red, color.green, color.blue));
-
-	RECT rcText = { pos.left(), pos.top(), pos.right(), pos.bottom() };
-	DrawTextW((HDC) hdc, text, -1, &rcText, DT_SINGLELINE | DT_NOPREFIX | DT_BOTTOM | DT_NOCLIP);
-
-	SelectObject((HDC) hdc, oldFont);
-
-	release_clip((HDC) hdc);
+	PointF pointF(pos.left(), pos.top());
+	SolidBrush brush(Color(255, color.red, color.green, color.blue)); 
+	Graphics g((HDC)hdc);
+	g.DrawString(utf8_to_wchar(text), -1, (Font *)hFont, pointF, &brush);
 }
 
 int HtmlContainer::pt_to_px( int pt )
@@ -119,8 +90,6 @@ const litehtml::tchar_t* HtmlContainer::get_default_font_name() const
 
 void HtmlContainer::draw_list_marker( litehtml::uint_ptr hdc, const litehtml::list_marker& marker )
 {
-	apply_clip((HDC) hdc);
-
 	if (!marker.image.empty()) {
 		// TODO draw image
 	} else
@@ -139,19 +108,17 @@ void HtmlContainer::draw_list_marker( litehtml::uint_ptr hdc, const litehtml::li
 			break;
 		case litehtml::list_style_type_square:
 			{
-				fill_rect((HDC) hdc, marker.pos.x, marker.pos.y, marker.pos.width, marker.pos.height, marker.color, css_border_radius());
+				litehtml::css_border_radius radius;
+				fill_rect((HDC) hdc, marker.pos.x, marker.pos.y, marker.pos.width, marker.pos.height, marker.color, radius);
 			}
 			break;
 		}
 	}
-
-	release_clip((HDC) hdc);
 }
 
-void litehtml::win32_container::load_image( const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl, bool redraw_on_ready )
-{
+void HtmlContainer::load_image( const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl, bool redraw_on_ready ) {
 	std::wstring url;
-	make_url(src, baseurl, url);
+	make_url(utf8_to_wchar(src), utf8_to_wchar(baseurl), url);
 	if(m_images.find(url.c_str()) == m_images.end())
 	{
 		litehtml::uint_ptr img = get_image(url.c_str());
@@ -162,8 +129,7 @@ void litehtml::win32_container::load_image( const litehtml::tchar_t* src, const 
 	}
 }
 
-void litehtml::win32_container::get_image_size( const wchar_t* src, const wchar_t* baseurl, litehtml::size& sz )
-{
+void HtmlContainer::get_image_size( const wchar_t* src, const wchar_t* baseurl, litehtml::size& sz ) {
 	std::wstring url;
 	make_url(src, baseurl, url);
 
@@ -174,511 +140,43 @@ void litehtml::win32_container::get_image_size( const wchar_t* src, const wchar_
 	}
 }
 
-void cairo_container::draw_background( litehtml::uint_ptr hdc, const litehtml::background_paint& bg )
-{
-	apply_clip((HDC) hdc);
-	
-	std::wstring url;
-	make_url(bg.image.c_str(), bg.baseurl.c_str(), url);
-
-	images_map::iterator img = m_images.find(url.c_str());
-	if(img != m_images.end())
-	{
-		litehtml::size img_sz;
-		get_img_size(img->second, img_sz);
-
-		litehtml::position pos = draw_pos;
-
-		if(bg_pos.x.units() != css_units_percentage)
-		{
-			pos.x += (int) bg_pos.x.val();
-		} else
-		{
-			pos.x += (int) ((float) (draw_pos.width - img_sz.width) * bg_pos.x.val() / 100.0);
-		}
-
-		if(bg_pos.y.units() != css_units_percentage)
-		{
-			pos.y += (int) bg_pos.y.val();
-		} else
-		{
-			pos.y += (int) ( (float) (draw_pos.height - img_sz.height) * bg_pos.y.val() / 100.0);
-		}
-
-		draw_img_bg((HDC) hdc, img->second, draw_pos, pos, repeat, attachment);
-	}
-
-	release_clip((HDC) hdc);
+void HtmlContainer::draw_background( litehtml::uint_ptr hdc, const litehtml::background_paint& bg ) {
+	// TODO
 }
 
-void cairo_container::draw_borders( litehtml::uint_ptr hdc, const litehtml::borders& borders, const litehtml::position& draw_pos, bool root )
-{
-	cairo_t* cr = (cairo_t*) hdc;
-	cairo_save(cr);
-	apply_clip(cr);
-
-	cairo_new_path(cr);
-
-	int bdr_top		= 0;
-	int bdr_bottom	= 0;
-	int bdr_left	= 0;
-	int bdr_right	= 0;
-
-	if(borders.top.width != 0 && borders.top.style > litehtml::border_style_hidden)
-	{
-		bdr_top = (int) borders.top.width;
-	}
-	if(borders.bottom.width != 0 && borders.bottom.style > litehtml::border_style_hidden)
-	{
-		bdr_bottom = (int) borders.bottom.width;
-	}
-	if(borders.left.width != 0 && borders.left.style > litehtml::border_style_hidden)
-	{
-		bdr_left = (int) borders.left.width;
-	}
-	if(borders.right.width != 0 && borders.right.style > litehtml::border_style_hidden)
-	{
-		bdr_right = (int) borders.right.width;
-	}
-
-	// draw right border
-	if (bdr_right)
-	{
-		set_color(cr, borders.right.color);
-
-		double r_top	= (double) borders.radius.top_right_x;
-		double r_bottom	= (double) borders.radius.bottom_right_x;
-
-		if(r_top)
-		{
-			double end_angle	= 2.0 * M_PI;
-			double start_angle	= end_angle - M_PI / 2.0  / ((double) bdr_top / (double) bdr_right + 0.5);
-
-			if (!add_path_arc(cr,
-					draw_pos.right() - r_top,
-					draw_pos.top() + r_top,
-					r_top - bdr_right,
-					r_top - bdr_right + (bdr_right - bdr_top),
-					end_angle,
-					start_angle, true))
-			{
-				cairo_move_to(cr, draw_pos.right() - bdr_right, draw_pos.top() + bdr_top);
-			}
-
-			if (!add_path_arc(cr,
-					draw_pos.right() - r_top,
-					draw_pos.top() + r_top,
-					r_top,
-					r_top,
-					start_angle,
-					end_angle, false))
-			{
-				cairo_line_to(cr, draw_pos.right(), draw_pos.top());
-			}
-		} else
-		{
-			cairo_move_to(cr, draw_pos.right() - bdr_right, draw_pos.top() + bdr_top);
-			cairo_line_to(cr, draw_pos.right(), draw_pos.top());
-		}
-
-		if(r_bottom)
-		{
-			cairo_line_to(cr, draw_pos.right(),	draw_pos.bottom() - r_bottom);
-
-			double start_angle	= 0;
-			double end_angle	= start_angle + M_PI / 2.0  / ((double) bdr_bottom / (double) bdr_right + 0.5);
-
-			if (!add_path_arc(cr,
-				draw_pos.right() - r_bottom,
-				draw_pos.bottom() - r_bottom,
-				r_bottom,
-				r_bottom,
-				start_angle,
-				end_angle, false))
-			{
-				cairo_line_to(cr, draw_pos.right(), draw_pos.bottom());
-			}
-
-			if (!add_path_arc(cr,
-				draw_pos.right() - r_bottom,
-				draw_pos.bottom() - r_bottom,
-				r_bottom - bdr_right,
-				r_bottom - bdr_right + (bdr_right - bdr_bottom),
-				end_angle,
-				start_angle, true))
-			{
-				cairo_line_to(cr, draw_pos.right() - bdr_right, draw_pos.bottom() - bdr_bottom);
-			}
-		} else
-		{
-			cairo_line_to(cr, draw_pos.right(),	draw_pos.bottom());
-			cairo_line_to(cr, draw_pos.right() - bdr_right,	draw_pos.bottom() - bdr_bottom);
-		}
-
-		cairo_fill(cr);
-	}
-
-	// draw bottom border
-	if(bdr_bottom)
-	{
-		set_color(cr, borders.bottom.color);
-
-		double r_left	= borders.radius.bottom_left_x;
-		double r_right	= borders.radius.bottom_right_x;
-
-		if(r_left)
-		{
-			double start_angle	= M_PI / 2.0;
-			double end_angle	= start_angle + M_PI / 2.0  / ((double) bdr_left / (double) bdr_bottom + 0.5);
-
-			if (!add_path_arc(cr,
-				draw_pos.left() + r_left,
-				draw_pos.bottom() - r_left,
-				r_left - bdr_bottom + (bdr_bottom - bdr_left),
-				r_left - bdr_bottom,
-				start_angle,
-				end_angle, false))
-			{
-				cairo_move_to(cr, draw_pos.left() + bdr_left, draw_pos.bottom() - bdr_bottom);
-			}
-
-			if (!add_path_arc(cr,
-				draw_pos.left() + r_left,
-				draw_pos.bottom() - r_left,
-				r_left,
-				r_left,
-				end_angle,
-				start_angle, true))
-			{
-				cairo_line_to(cr, draw_pos.left(), draw_pos.bottom());
-			}
-		} else
-		{
-			cairo_move_to(cr, draw_pos.left(), draw_pos.bottom());
-			cairo_line_to(cr, draw_pos.left() + bdr_left, draw_pos.bottom() - bdr_bottom);
-		}
-
-		if(r_right)
-		{
-			cairo_line_to(cr, draw_pos.right() - r_right,	draw_pos.bottom());
-
-			double end_angle	= M_PI / 2.0;
-			double start_angle	= end_angle - M_PI / 2.0  / ((double) bdr_right / (double) bdr_bottom + 0.5);
-
-			if (!add_path_arc(cr,
-				draw_pos.right() - r_right,
-				draw_pos.bottom() - r_right,
-				r_right,
-				r_right,
-				end_angle,
-				start_angle, true))
-			{
-				cairo_line_to(cr, draw_pos.right(), draw_pos.bottom());
-			}
-
-			if (!add_path_arc(cr,
-				draw_pos.right() - r_right,
-				draw_pos.bottom() - r_right,
-				r_right - bdr_bottom + (bdr_bottom - bdr_right),
-				r_right - bdr_bottom,
-				start_angle,
-				end_angle, false))
-			{
-				cairo_line_to(cr, draw_pos.right() - bdr_right, draw_pos.bottom() - bdr_bottom);
-			}
-		} else
-		{
-			cairo_line_to(cr, draw_pos.right() - bdr_right,	draw_pos.bottom() - bdr_bottom);
-			cairo_line_to(cr, draw_pos.right(),	draw_pos.bottom());
-		}
-
-		cairo_fill(cr);
-	}
-
-	// draw top border
-	if(bdr_top)
-	{
-		set_color(cr, borders.top.color);
-
-		double r_left	= borders.radius.top_left_x;
-		double r_right	= borders.radius.top_right_x;
-
-		if(r_left)
-		{
-			double end_angle	= M_PI * 3.0 / 2.0;
-			double start_angle	= end_angle - M_PI / 2.0  / ((double) bdr_left / (double) bdr_top + 0.5);
-
-			if (!add_path_arc(cr,
-				draw_pos.left() + r_left,
-				draw_pos.top() + r_left,
-				r_left,
-				r_left,
-				end_angle,
-				start_angle, true))
-			{
-				cairo_move_to(cr, draw_pos.left(), draw_pos.top());
-			}
-
-			if (!add_path_arc(cr,
-				draw_pos.left() + r_left,
-				draw_pos.top() + r_left,
-				r_left - bdr_top + (bdr_top - bdr_left),
-				r_left - bdr_top,
-				start_angle,
-				end_angle, false))
-			{
-				cairo_line_to(cr, draw_pos.left() + bdr_left, draw_pos.top() + bdr_top);
-			}
-		} else
-		{
-			cairo_move_to(cr, draw_pos.left(), draw_pos.top());
-			cairo_line_to(cr, draw_pos.left() + bdr_left, draw_pos.top() + bdr_top);
-		}
-
-		if(r_right)
-		{
-			cairo_line_to(cr, draw_pos.right() - r_right,	draw_pos.top() + bdr_top);
-
-			double start_angle	= M_PI * 3.0 / 2.0;
-			double end_angle	= start_angle + M_PI / 2.0  / ((double) bdr_right / (double) bdr_top + 0.5);
-
-			if (!add_path_arc(cr,
-				draw_pos.right() - r_right,
-				draw_pos.top() + r_right,
-				r_right - bdr_top + (bdr_top - bdr_right),
-				r_right - bdr_top,
-				start_angle,
-				end_angle, false))
-			{
-				cairo_line_to(cr, draw_pos.right() - bdr_right, draw_pos.top() + bdr_top);
-			}
-
-			if (!add_path_arc(cr,
-				draw_pos.right() - r_right,
-				draw_pos.top() + r_right,
-				r_right,
-				r_right,
-				end_angle,
-				start_angle, true))
-			{
-				cairo_line_to(cr, draw_pos.right(), draw_pos.top());
-			}
-		} else
-		{
-			cairo_line_to(cr, draw_pos.right() - bdr_right,	draw_pos.top() + bdr_top);
-			cairo_line_to(cr, draw_pos.right(),	draw_pos.top());
-		}
-
-		cairo_fill(cr);
-	}
-
-	// draw left border
-	if (bdr_left)
-	{
-		set_color(cr, borders.left.color);
-
-		double r_top	= borders.radius.top_left_x;
-		double r_bottom	= borders.radius.bottom_left_x;
-
-		if(r_top)
-		{
-			double start_angle	= M_PI;
-			double end_angle	= start_angle + M_PI / 2.0  / ((double) bdr_top / (double) bdr_left + 0.5);
-
-			if (!add_path_arc(cr,
-				draw_pos.left() + r_top,
-				draw_pos.top() + r_top,
-				r_top - bdr_left,
-				r_top - bdr_left + (bdr_left - bdr_top),
-				start_angle,
-				end_angle, false))
-			{
-				cairo_move_to(cr, draw_pos.left() + bdr_left, draw_pos.top() + bdr_top);
-			}
-
-			if (!add_path_arc(cr,
-				draw_pos.left() + r_top,
-				draw_pos.top() + r_top,
-				r_top,
-				r_top,
-				end_angle,
-				start_angle, true))
-			{
-				cairo_line_to(cr, draw_pos.left(), draw_pos.top());
-			}
-		} else
-		{
-			cairo_move_to(cr, draw_pos.left() + bdr_left, draw_pos.top() + bdr_top);
-			cairo_line_to(cr, draw_pos.left(), draw_pos.top());
-		}
-
-		if(r_bottom)
-		{
-			cairo_line_to(cr, draw_pos.left(),	draw_pos.bottom() - r_bottom);
-
-			double end_angle	= M_PI;
-			double start_angle	= end_angle - M_PI / 2.0  / ((double) bdr_bottom / (double) bdr_left + 0.5);
-
-			if (!add_path_arc(cr,
-				draw_pos.left() + r_bottom,
-				draw_pos.bottom() - r_bottom,
-				r_bottom,
-				r_bottom,
-				end_angle,
-				start_angle, true))
-			{
-				cairo_line_to(cr, draw_pos.left(), draw_pos.bottom());
-			}
-
-			if (!add_path_arc(cr,
-				draw_pos.left() + r_bottom,
-				draw_pos.bottom() - r_bottom,
-				r_bottom - bdr_left,
-				r_bottom - bdr_left + (bdr_left - bdr_bottom),
-				start_angle,
-				end_angle, false))
-			{
-				cairo_line_to(cr, draw_pos.left() + bdr_left, draw_pos.bottom() - bdr_bottom);
-			}
-		} else
-		{
-			cairo_line_to(cr, draw_pos.left(),	draw_pos.bottom());
-			cairo_line_to(cr, draw_pos.left() + bdr_left,	draw_pos.bottom() - bdr_bottom);
-		}
-
-		cairo_fill(cr);
-	}
-	cairo_restore(cr);
+void HtmlContainer::draw_borders( litehtml::uint_ptr hdc, const litehtml::borders& borders, const litehtml::position& draw_pos, bool root ) {
+	// TODO
 }
 
-void web_page::set_caption( const litehtml::tchar_t* caption ) {
+void HtmlContainer::set_caption( const litehtml::tchar_t* caption ) {
 	// do nothing
 }
 
-void web_page::set_base_url( const litehtml::tchar_t* base_url )
-{
-#ifndef LITEHTML_UTF8
-	if(base_url)
-	{
-		if(PathIsRelative(base_url) && !PathIsURL(base_url))
-		{
-			make_url(base_url, m_url.c_str(), m_base_path);
-		} else
-		{
-			m_base_path = base_url;
-		}
-	} else
-	{
-		m_base_path = m_url;
-	}
-#else
-	LPWSTR bu = cairo_font::utf8_to_wchar(base_url);
-
-	if(bu)
-	{
-		if(PathIsRelative(bu) && !PathIsURL(bu))
-		{
-			make_url(bu, m_url.c_str(), m_base_path);
-		} else
-		{
-			m_base_path = bu;
-		}
-	} else
-	{
-		m_base_path = m_url;
-	}
-#endif
-}
-
-void cairo_container::link(const std::shared_ptr<litehtml::document>& doc, const litehtml::element::ptr& el) {
+void HtmlContainer::set_base_url( const litehtml::tchar_t* base_url ) {
 	// do nothing
 }
 
-void web_page::on_anchor_click( const litehtml::tchar_t* url, const litehtml::element::ptr& el ) {
+void HtmlContainer::link(const std::shared_ptr<litehtml::document>& doc, const litehtml::element::ptr& el) {
 	// do nothing
 }
 
-void web_page::set_cursor( const litehtml::tchar_t* cursor ) {
+void HtmlContainer::on_anchor_click( const litehtml::tchar_t* url, const litehtml::element::ptr& el ) {
 	// do nothing
 }
 
-void cairo_container::transform_text( litehtml::tstring& text, litehtml::text_transform tt )
-{
-	if(text.empty()) return;
-
-#ifndef LITEHTML_UTF8
-	switch(tt)
-	{
-	case litehtml::text_transform_capitalize:
-		if(!text.empty())
-		{
-			text[0] = (WCHAR) CharUpper((LPWSTR) text[0]);
-		}
-		break;
-	case litehtml::text_transform_uppercase:
-		for(size_t i = 0; i < text.length(); i++)
-		{
-			text[i] = (WCHAR) CharUpper((LPWSTR) text[i]);
-		}
-		break;
-	case litehtml::text_transform_lowercase:
-		for(size_t i = 0; i < text.length(); i++)
-		{
-			text[i] = (WCHAR) CharLower((LPWSTR) text[i]);
-		}
-		break;
-	}
-#else
-	LPWSTR txt = cairo_font::utf8_to_wchar(text.c_str());
-	switch(tt)
-	{
-	case litehtml::text_transform_capitalize:
-		CharUpperBuff(txt, 1);
-		break;
-	case litehtml::text_transform_uppercase:
-		CharUpperBuff(txt, lstrlen(txt));
-		break;
-	case litehtml::text_transform_lowercase:
-		CharLowerBuff(txt, lstrlen(txt));
-		break;
-	}
-	LPSTR txtA = cairo_font::wchar_to_utf8(txt);
-	text = txtA;
-	delete txtA;
-	delete txt;
-#endif
+void HtmlContainer::set_cursor( const litehtml::tchar_t* cursor ) {
+	// do nothing
 }
 
-void web_page::import_css( litehtml::tstring& text, const litehtml::tstring& url, litehtml::tstring& baseurl )
-{
-	std::wstring css_url;
-	t_make_url(url.c_str(), baseurl.c_str(), css_url);
-
-	if(download_and_wait(css_url.c_str()))
-	{
-#ifndef LITEHTML_UTF8
-		LPWSTR css = load_text_file(m_waited_file.c_str(), false, L"UTF-8");
-		if(css)
-		{
-			baseurl = css_url;
-			text = css;
-			delete css;
-		}
-#else
-		LPSTR css = (LPSTR) load_utf8_file(m_waited_file.c_str(), false, L"UTF-8");
-		if(css)
-		{
-			LPSTR css_urlA = cairo_font::wchar_to_utf8(css_url.c_str());
-			baseurl = css_urlA;
-			text = css;
-			delete css;
-			delete css_urlA;
-		}
-#endif
-	}
+void HtmlContainer::transform_text( litehtml::tstring& text, litehtml::text_transform tt ) {
+	// do nothing
 }
 
-void cairo_container::set_clip(const litehtml::position& pos, const litehtml::border_radiuses& bdr_radius, bool valid_x, bool valid_y)
+void HtmlContainer::import_css( litehtml::tstring& text, const litehtml::tstring& url, litehtml::tstring& baseurl ) {
+	// do nothing
+}
+
+void HtmlContainer::set_clip(const litehtml::position& pos, const litehtml::border_radiuses& bdr_radius, bool valid_x, bool valid_y)
 {
 	litehtml::position clip_pos = pos;
 	litehtml::position client_pos;
@@ -696,7 +194,7 @@ void cairo_container::set_clip(const litehtml::position& pos, const litehtml::bo
 	m_clips.emplace_back(clip_pos, bdr_radius);
 }
 
-void cairo_container::del_clip()
+void HtmlContainer::del_clip()
 {
 	if(!m_clips.empty())
 	{
@@ -704,14 +202,12 @@ void cairo_container::del_clip()
 	}
 }
 
-void CHTMLViewWnd::get_client_rect( litehtml::position& client ) const
+void HtmlContainer::get_client_rect( litehtml::position& client ) const
 {
-	RECT rcClient;
-	GetClientRect(m_hWnd, &rcClient);
-	client.x		= rcClient.left;
-	client.y		= rcClient.top;
-	client.width	= rcClient.right - rcClient.left;
-	client.height	= rcClient.bottom - rcClient.top;
+	client.x		= 10;
+	client.y		= 10;
+	client.width	= 400;
+	client.height	= 600;
 }
 
 std::shared_ptr<litehtml::element> cairo_container::create_element(const litehtml::tchar_t* tag_name, const litehtml::string_map& attributes, const std::shared_ptr<litehtml::document>& doc)
@@ -719,7 +215,7 @@ std::shared_ptr<litehtml::element> cairo_container::create_element(const litehtm
 	return 0;
 }
 
-void cairo_container::get_media_features(litehtml::media_features& media)  const
+void HtmlContainer::get_media_features(litehtml::media_features& media)  const
 {
 	litehtml::position client;
 	get_client_rect(client);
@@ -738,70 +234,121 @@ void cairo_container::get_media_features(litehtml::media_features& media)  const
 	ReleaseDC(NULL, hdc);
 }
 
-void cairo_container::get_language(litehtml::tstring& language, litehtml::tstring & culture) const
+void HtmlContainer::get_language(litehtml::tstring& language, litehtml::tstring & culture) const
 {
 	language = _t("en");
 	culture = _t("");
 }
 
-litehtml::tstring cairo_container::resolve_color(const litehtml::tstring& color) const
+litehtml::tstring HtmlContainer::resolve_color(const litehtml::tstring& color) const
 {
-	struct custom_color 
+	return litehtml::tstring();
+}
+
+void HtmlContainer::make_url( LPCWSTR url, LPCWSTR basepath, std::wstring& out )
+{
+	if(PathIsRelative(url) && !PathIsURL(url))
 	{
-		litehtml::tchar_t*	name;
-		int					color_index;
-	};
+		if(basepath && basepath[0])
+		{
+			DWORD dl = lstrlen(url) + lstrlen(basepath) + 1;
+			LPWSTR abs_url = new WCHAR[dl];
+			HRESULT res = UrlCombine(basepath, url, abs_url, &dl, 0);
+			if (res == E_POINTER)
+			{
+				delete abs_url;
+				abs_url = new WCHAR[dl + 1];
+				if (UrlCombine(basepath, url, abs_url, &dl, 0) == S_OK)
+				{
+					out = abs_url;
+				}
+			}
+			else if (res == S_OK)
+			{
+				out = abs_url;
+			}
+			delete abs_url;
+		}
+		else
+		{
+			DWORD dl = lstrlen(url) + (DWORD) m_base_path.length() + 1;
+			LPWSTR abs_url = new WCHAR[dl];
+			HRESULT res = UrlCombine(m_base_path.c_str(), url, abs_url, &dl, 0);
+			if (res == E_POINTER)
+			{
+				delete abs_url;
+				abs_url = new WCHAR[dl + 1];
+				if (UrlCombine(m_base_path.c_str(), url, abs_url, &dl, 0) == S_OK)
+				{
+					out = abs_url;
+				}
+			}
+			else if (res == S_OK)
+			{
+				out = abs_url;
+			}
+			delete abs_url;
+		}
+	} else
+	{
+		if(PathIsURL(url))
+		{
+			out = url;
+		} else
+		{
+			DWORD dl = lstrlen(url) + 1;
+			LPWSTR abs_url = new WCHAR[dl];
+			HRESULT res = UrlCreateFromPath(url, abs_url, &dl, 0);
+			if (res == E_POINTER)
+			{
+				delete abs_url;
+				abs_url = new WCHAR[dl + 1];
+				if (UrlCreateFromPath(url, abs_url, &dl, 0) == S_OK)
+				{
+					out = abs_url;
+				}
+			}
+			else if (res == S_OK)
+			{
+				out = abs_url;
+			}
+			delete abs_url;
+		}
+	}
+	if(out.substr(0, 8) == L"file:///")
+	{
+		out.erase(5, 1);
+	}
+	if(out.substr(0, 7) == L"file://")
+	{
+		out.erase(0, 7);
+	}
+}
 
-	static custom_color colors[] = {
-		{ _t("ActiveBorder"),          COLOR_ACTIVEBORDER},
-		{ _t("ActiveCaption"),         COLOR_ACTIVECAPTION},
-		{ _t("AppWorkspace"),          COLOR_APPWORKSPACE },
-		{ _t("Background"),            COLOR_BACKGROUND },
-		{ _t("ButtonFace"),            COLOR_BTNFACE },
-		{ _t("ButtonHighlight"),       COLOR_BTNHIGHLIGHT },
-		{ _t("ButtonShadow"),          COLOR_BTNSHADOW },
-		{ _t("ButtonText"),            COLOR_BTNTEXT },
-		{ _t("CaptionText"),           COLOR_CAPTIONTEXT },
-        { _t("GrayText"),              COLOR_GRAYTEXT },
-		{ _t("Highlight"),             COLOR_HIGHLIGHT },
-		{ _t("HighlightText"),         COLOR_HIGHLIGHTTEXT },
-		{ _t("InactiveBorder"),        COLOR_INACTIVEBORDER },
-		{ _t("InactiveCaption"),       COLOR_INACTIVECAPTION },
-		{ _t("InactiveCaptionText"),   COLOR_INACTIVECAPTIONTEXT },
-		{ _t("InfoBackground"),        COLOR_INFOBK },
-		{ _t("InfoText"),              COLOR_INFOTEXT },
-		{ _t("Menu"),                  COLOR_MENU },
-		{ _t("MenuText"),              COLOR_MENUTEXT },
-		{ _t("Scrollbar"),             COLOR_SCROLLBAR },
-		{ _t("ThreeDDarkShadow"),      COLOR_3DDKSHADOW },
-		{ _t("ThreeDFace"),            COLOR_3DFACE },
-		{ _t("ThreeDHighlight"),       COLOR_3DHILIGHT },
-		{ _t("ThreeDLightShadow"),     COLOR_3DLIGHT },
-		{ _t("ThreeDShadow"),          COLOR_3DSHADOW },
-		{ _t("Window"),                COLOR_WINDOW },
-		{ _t("WindowFrame"),           COLOR_WINDOWFRAME },
-		{ _t("WindowText"),            COLOR_WINDOWTEXT }
-	};
+void HtmlContainer::draw_ellipse( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color, int line_width ) {
+	Gdiplus::Graphics graphics(hdc);
+	Gdiplus::LinearGradientBrush* brush = NULL;
 
-    if (color == L"Highlight")
-    {
-        int iii = 0;
-        iii++;
-    }
+	graphics.SetCompositingQuality(Gdiplus::CompositingQualityHighQuality);
+	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
 
-    for (auto& clr : colors)
-    {
-        if (!t_strcasecmp(clr.name, color.c_str()))
-        {
-            litehtml::tchar_t  str_clr[20];
-            DWORD rgb_color =  GetSysColor(clr.color_index);
-#ifdef LITEHTML_UTF8
-            StringCchPrintfA(str_clr, 20, "#%02X%02X%02X", GetRValue(rgb_color), GetGValue(rgb_color), GetBValue(rgb_color));
-#else
-            StringCchPrintf(str_clr, 20, L"#%02X%02X%02X", GetRValue(rgb_color), GetGValue(rgb_color), GetBValue(rgb_color));
-#endif // LITEHTML_UTF8
-            return std::move(litehtml::tstring(str_clr));
-        }
-    }
-    return std::move(litehtml::tstring());
+	Gdiplus::Pen pen( Gdiplus::Color(color.alpha, color.red, color.green, color.blue) );
+	graphics.DrawEllipse(&pen, x, y, width, height);
+}
+
+void HtmlContainer::fill_ellipse( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color ) {
+	Gdiplus::Graphics graphics(hdc);
+
+	graphics.SetCompositingQuality(Gdiplus::CompositingQualityHighQuality);
+	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+
+	Gdiplus::SolidBrush brush( Gdiplus::Color(color.alpha, color.red, color.green, color.blue) );
+	graphics.FillEllipse(&brush, x, y, width, height);
+}
+
+void HtmlContainer::fill_rect( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color, const litehtml::css_border_radius& radius ) {
+	Gdiplus::Graphics graphics(hdc);
+
+	Gdiplus::SolidBrush brush( Gdiplus::Color(color.alpha, color.red, color.green, color.blue) );
+	graphics.FillRectangle(&brush, x, y, width, height);
 }

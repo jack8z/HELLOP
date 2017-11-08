@@ -1,18 +1,21 @@
-#pragma once
+﻿#pragma once
 
 #include "afxTodop.h"
 #include <strsafe.h>
 #include "litehtml.h"
-#include "gdiplus/gdiplus_container.h"
 
 #pragma comment(lib, "litehtml.lib")
+
+#include <gdiplus.h>
+
+using namespace Gdiplus;
 
 #include "easylogging++.h"
 
 // Html渲染类，使用litehtml库渲染Html代码
 class HtmlContainer : public litehtml::document_container {
 public:
-    HtmlContainer(HDC hdcPrinter);
+    HtmlContainer();
     ~HtmlContainer();
 
 public:
@@ -45,10 +48,15 @@ public:
 
 	virtual void				get_media_features(litehtml::media_features& media) const;
 	virtual void				get_language(litehtml::tstring& language, litehtml::tstring & culture) const;
-	virtual litehtml::tstring	resolve_color(const litehtml::tstring& color) const  { return litehtml::tstring(); }
+	virtual litehtml::tstring	resolve_color(const litehtml::tstring& color) const;
+
+protected:
+	virtual void 		make_url( LPCWSTR url, LPCWSTR basepath, std::wstring& out );
+	virtual void		draw_ellipse(HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color, int line_width);
+	virtual void		fill_ellipse(HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color);
+	virtual void		fill_rect(HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color, const litehtml::css_border_radius& radius);
 
 private:
-    litehtml::document::ptr		m_doc;
-
-    HDC m_hdcPrinter; // 打印机上下文
+	litehtml::document::ptr		m_doc;
+	std::map<std::wstring, litehtml::uint_ptr> m_images; // 图片的缓存
 };

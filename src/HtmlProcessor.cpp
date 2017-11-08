@@ -1,4 +1,4 @@
-#include "HtmlProcessor.h"
+﻿#include "HtmlProcessor.h"
 
 HtmlProcessor::HtmlProcessor(HDC hdcPrinter) {
 	m_hdcPrinter = hdcPrinter;
