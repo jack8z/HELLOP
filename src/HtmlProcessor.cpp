@@ -13,11 +13,9 @@ HtmlProcessor::HtmlProcessor(HDC hdcPrinter) {
 		boost::filesystem::path css_file_path = curr_path / "res/master.css"; //path支持重载/运算符
 		if (boost::filesystem::exists(css_file_path)) {
 			std::wstring css;
-			read_file(css_file_path.string(), css);
-			if(css)
-			{
+			int ret = read_file(css_file_path.string(), css);
+			if(ret==0 && css.size()>0) {
 				m_pLiteContext.load_master_stylesheet(css);
-				delete css;
 			}
 		} else {
 			LOG(DEBUG) << "Can not found file : " << css_file_path.string() << std::endl;
