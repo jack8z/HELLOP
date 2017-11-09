@@ -92,8 +92,7 @@ void HtmlContainer::draw_list_marker( litehtml::uint_ptr hdc, const litehtml::li
 {
 	if (!marker.image.empty()) {
 		// TODO draw image
-	} else
-	{
+	} else {
 		switch(marker.marker_type)
 		{
 		case litehtml::list_style_type_circle:
@@ -119,25 +118,27 @@ void HtmlContainer::draw_list_marker( litehtml::uint_ptr hdc, const litehtml::li
 void HtmlContainer::load_image( const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl, bool redraw_on_ready ) {
 	std::wstring url;
 	make_url(utf8_to_wchar(src), utf8_to_wchar(baseurl), url);
-	if(m_images.find(url.c_str()) == m_images.end())
-	{
+	if(m_images.find(url.c_str()) == m_images.end()) {
+	/*
 		litehtml::uint_ptr img = get_image(url.c_str());
 		if(img)
 		{ 
 			m_images[url.c_str()] = img;
 		}
+	*/
 	}
 }
 
-void HtmlContainer::get_image_size( const wchar_t* src, const wchar_t* baseurl, litehtml::size& sz ) {
+void HtmlContainer::get_image_size( const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl, litehtml::size& sz ) {
 	std::wstring url;
-	make_url(src, baseurl, url);
-
+	make_url(utf8_to_wchar(src), utf8_to_wchar(baseurl), url);
+/*
 	images_map::iterator img = m_images.find(url.c_str());
 	if(img != m_images.end())
 	{
 		get_img_size(img->second, sz);
 	}
+*/
 }
 
 void HtmlContainer::draw_background( litehtml::uint_ptr hdc, const litehtml::background_paint& bg ) {
@@ -178,28 +179,12 @@ void HtmlContainer::import_css( litehtml::tstring& text, const litehtml::tstring
 
 void HtmlContainer::set_clip(const litehtml::position& pos, const litehtml::border_radiuses& bdr_radius, bool valid_x, bool valid_y)
 {
-	litehtml::position clip_pos = pos;
-	litehtml::position client_pos;
-	get_client_rect(client_pos);
-	if(!valid_x)
-	{
-		clip_pos.x		= client_pos.x;
-		clip_pos.width	= client_pos.width;
-	}
-	if(!valid_y)
-	{
-		clip_pos.y		= client_pos.y;
-		clip_pos.height	= client_pos.height;
-	}
-	m_clips.emplace_back(clip_pos, bdr_radius);
+	// do nothing
 }
 
 void HtmlContainer::del_clip()
 {
-	if(!m_clips.empty())
-	{
-		m_clips.pop_back();
-	}
+	// do nothing
 }
 
 void HtmlContainer::get_client_rect( litehtml::position& client ) const
@@ -210,7 +195,7 @@ void HtmlContainer::get_client_rect( litehtml::position& client ) const
 	client.height	= 600;
 }
 
-std::shared_ptr<litehtml::element> cairo_container::create_element(const litehtml::tchar_t* tag_name, const litehtml::string_map& attributes, const std::shared_ptr<litehtml::document>& doc)
+std::shared_ptr<litehtml::element> HtmlContainer::create_element(const litehtml::tchar_t* tag_name, const litehtml::string_map& attributes, const std::shared_ptr<litehtml::document>& doc)
 {
 	return 0;
 }
@@ -247,82 +232,7 @@ litehtml::tstring HtmlContainer::resolve_color(const litehtml::tstring& color) c
 
 void HtmlContainer::make_url( LPCWSTR url, LPCWSTR basepath, std::wstring& out )
 {
-	if(PathIsRelative(url) && !PathIsURL(url))
-	{
-		if(basepath && basepath[0])
-		{
-			DWORD dl = lstrlen(url) + lstrlen(basepath) + 1;
-			LPWSTR abs_url = new WCHAR[dl];
-			HRESULT res = UrlCombine(basepath, url, abs_url, &dl, 0);
-			if (res == E_POINTER)
-			{
-				delete abs_url;
-				abs_url = new WCHAR[dl + 1];
-				if (UrlCombine(basepath, url, abs_url, &dl, 0) == S_OK)
-				{
-					out = abs_url;
-				}
-			}
-			else if (res == S_OK)
-			{
-				out = abs_url;
-			}
-			delete abs_url;
-		}
-		else
-		{
-			DWORD dl = lstrlen(url) + (DWORD) m_base_path.length() + 1;
-			LPWSTR abs_url = new WCHAR[dl];
-			HRESULT res = UrlCombine(m_base_path.c_str(), url, abs_url, &dl, 0);
-			if (res == E_POINTER)
-			{
-				delete abs_url;
-				abs_url = new WCHAR[dl + 1];
-				if (UrlCombine(m_base_path.c_str(), url, abs_url, &dl, 0) == S_OK)
-				{
-					out = abs_url;
-				}
-			}
-			else if (res == S_OK)
-			{
-				out = abs_url;
-			}
-			delete abs_url;
-		}
-	} else
-	{
-		if(PathIsURL(url))
-		{
-			out = url;
-		} else
-		{
-			DWORD dl = lstrlen(url) + 1;
-			LPWSTR abs_url = new WCHAR[dl];
-			HRESULT res = UrlCreateFromPath(url, abs_url, &dl, 0);
-			if (res == E_POINTER)
-			{
-				delete abs_url;
-				abs_url = new WCHAR[dl + 1];
-				if (UrlCreateFromPath(url, abs_url, &dl, 0) == S_OK)
-				{
-					out = abs_url;
-				}
-			}
-			else if (res == S_OK)
-			{
-				out = abs_url;
-			}
-			delete abs_url;
-		}
-	}
-	if(out.substr(0, 8) == L"file:///")
-	{
-		out.erase(5, 1);
-	}
-	if(out.substr(0, 7) == L"file://")
-	{
-		out.erase(0, 7);
-	}
+	// TODO
 }
 
 void HtmlContainer::draw_ellipse( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color, int line_width ) {

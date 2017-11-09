@@ -4,7 +4,11 @@
 #include <strsafe.h>
 #include "litehtml.h"
 
-#pragma comment(lib, "litehtml.lib")
+#ifdef _DEBUG
+	#pragma comment(lib, "litehtml_d.lib")
+#else
+	#pragma comment(lib, "litehtml.lib")
+#endif
 
 #include <gdiplus.h>
 

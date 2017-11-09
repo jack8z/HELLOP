@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "afxTodop.h"
+#include "HtmlContainer.h"
 
 #include "easylogging++.h"
 
@@ -12,4 +13,7 @@ public:
 
 private:
     HDC m_hdcPrinter; // 打印机上下文
+    
+    litehtml::context *m_pLiteContext;
+    HtmlContainer *m_pHtmlContainer;
 };
