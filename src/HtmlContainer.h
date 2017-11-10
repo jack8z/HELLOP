@@ -19,8 +19,12 @@ using namespace Gdiplus;
 // Html渲染类，使用litehtml库渲染Html代码
 class HtmlContainer : public litehtml::document_container {
 public:
-    HtmlContainer();
-    ~HtmlContainer();
+    HtmlContainer(litehtml::context *pContext);
+	~HtmlContainer();
+	
+public:
+	void initHtml(std::wstring html);
+	void draw(HDC hdc, double x, double y, double width, double height);
 
 public:
 	virtual litehtml::uint_ptr	create_font(const litehtml::tchar_t* faceName, int size, int weight, litehtml::font_style italic, unsigned int decoration, litehtml::font_metrics* fm);
@@ -63,4 +67,5 @@ protected:
 private:
 	litehtml::document::ptr		m_doc;
 	std::map<std::wstring, litehtml::uint_ptr> m_images; // 图片的缓存
+	litehtml::context *m_pLiteContext;
 };

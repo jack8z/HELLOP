@@ -25,6 +25,8 @@ public:
 	void addBarCode(std::string text, double x, double y, std::string style);
 	// 添加要打印的QR码. style:文本的样式，JSON格式
 	void addQrCode(std::string text, double x, double y, std::string style);
+	// 添加要打印的Html代码.
+	void addHtml(std::string html, double x, double y, double width, double height);
 	
 	// 添加新的页面
 	void addNewPage();

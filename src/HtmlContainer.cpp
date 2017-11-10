@@ -1,11 +1,32 @@
 ﻿#include "HtmlContainer.h"
 
-HtmlContainer::HtmlContainer() {
-	// do nothing
+HtmlContainer::HtmlContainer(litehtml::context *pContext) {
+	m_pLiteContext = pContext;
 }
 
 HtmlContainer::~HtmlContainer() {
 	// do nothing
+}
+
+void HtmlContainer::initHtml(std::wstring html) {
+	if(m_doc) {
+		// delete m_doc;
+	}
+
+	std::string buff = todop_to_string(html);
+	if(html.empty()){
+		buff = "<h1>Something Wrong</h1>";
+	}
+	m_doc = litehtml::document::createFromUTF8(buff.c_str(), this, m_pLiteContext);
+}
+
+void HtmlContainer::draw(HDC hdc, double x, double y, double width, double height) {
+	int best_width = m_doc->render((int)width);
+	if(best_width < width) {
+		m_doc->render(best_width);
+	}
+	litehtml::position clip(x, y, width, height);
+	m_doc->draw((litehtml::uint_ptr)hdc, -50, -100, &clip);
 }
 
 litehtml::uint_ptr HtmlContainer::create_font(const litehtml::tchar_t* faceName, int size, int weight, litehtml::font_style italic, unsigned int decoration, litehtml::font_metrics* fm) {

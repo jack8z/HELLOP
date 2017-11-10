@@ -50,39 +50,25 @@ inline char* wchar_to_utf8( const wchar_t* src ) {
 	return ret;
 }
 
-int read_file(std::wstring filePath, std::vector<std::wstring> &data) {
-	data.clear();
-
-	std::wifstream fs(filePath.c_str(), std::ios::in);
-
-	const int bufsize = 1024;
-	wchar_t strbuff[bufsize];
-
-	while(!fs.eof()) {
-		fs.getline(strbuff, bufsize);
-		std::wstring tmp = strbuff;
-		if(tmp.empty()) continue;
-		data.push_back(tmp);
-	}
-	fs.close();
-
-	if(data.size()<1){
+inline int read_file(std::string filePath, std::string &data) {
+	std::ifstream fs(filePath.c_str(), std::ios::in);
+	if (!fs || !fs.is_open()) {
 		return -1;
 	}
-
-	return 0;
-}
-
-int read_file(std::wstring filePath, std::wstring &data) {
-	std::wstringstream ss;
-	std::vector<std::wstring> v;
-	int ret = read_file(filePath, v);
-	if(ret == 0){
-		for(size_t i=0; i<v.size(); i++){
-			if(i>0) ss << "\n";
-			ss << v[i];
-		}
+	fs.seekg(0, ios::beg);
+	std::streampos begin = fs.tellg();
+	fs.seekg(0, ios::end);
+	std::streampos end = fs.tellg();
+	unsigned int size = end - begin;
+	
+	char *pBuff = new char[size+1];
+	if (pBuff) {
+		fs.seekg(0, ios::beg);
+		fs.read(pBuff, size);
+		pBuff[size] = '\0';
+		fs.close();
+		data = pBuff;
+		delete pBuff;
 	}
-	data = ss.str();
-	return ret;
+	return 0;
 }

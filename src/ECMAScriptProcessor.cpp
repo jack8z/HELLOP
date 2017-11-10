@@ -1,5 +1,6 @@
 ﻿#include "ECMAScriptProcessor.h"
 #include "BarcodeRender.h"
+#include "HtmlProcessor.h"
 
 ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
 	m_hdcPrinter = hdcPrinter;
@@ -59,6 +60,7 @@ int ECMAScriptProcessor::initDuktape() {
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addBarCode, "addBarCode");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addQrCode, "addQrCode");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addNewPage, "addNewPage");
+		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addHtml, "addHtml");
 	} catch(...) {
 		LOG(ERROR) << "Failed to register c++ object and method!!"  << std::endl;
 		return -1;
@@ -72,6 +74,16 @@ void ECMAScriptProcessor::log_debug(std::string text) {
 }
 
 void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
+	/*
+	std::string data;
+	if(0==read_file(fileName, data)){
+		duk_push_lstring(m_pDukContext, data.c_str(), data.size());
+		LOG(DEBUG) << "Js File( " << fileName << " ) size : " << data.size() << std::endl;
+	} else {
+		LOG(ERROR) << "Failed to Open file : " << fileName << std::endl;
+        duk_push_undefined(m_pDukContext);
+	}
+	*/
 	FILE *f;
     size_t len;
     char buf[16384];
@@ -87,7 +99,7 @@ void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
     } else {
 		LOG(ERROR) << "Failed to Open file : " << fileName << std::endl;
         duk_push_undefined(m_pDukContext);
-    }
+	}
 }
 
 void ECMAScriptProcessor::addText(std::string text, double x, double y, std::string style) {
@@ -126,6 +138,13 @@ void ECMAScriptProcessor::addQrCode(std::string text, double x, double y, std::s
 	if (NULL != m_pGraphics) {
 		BarcodeRender barcodeRender(m_pGraphics);
 		barcodeRender.drawQrcode(todop_to_wstring(text), x, y);
+	}
+}
+
+void ECMAScriptProcessor::addHtml(std::string html, double x, double y, double width, double height) {
+	if (NULL != m_pGraphics) {
+		HtmlProcessor htmlProcessor(m_hdcPrinter);
+		htmlProcessor.addHtml(todop_to_wstring(html), x, y, width, height);
 	}
 }
 
