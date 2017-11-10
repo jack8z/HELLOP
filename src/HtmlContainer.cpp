@@ -25,6 +25,9 @@ void HtmlContainer::draw(HDC hdc, double x, double y, double width, double heigh
 	if(best_width < width) {
 		m_doc->render(best_width);
 	}
+
+	LOG(DEBUG) << "best_width : " << best_width << std::endl;
+	
 	litehtml::position clip(x, y, width, height);
 	m_doc->draw((litehtml::uint_ptr)hdc, -50, -100, &clip);
 }
