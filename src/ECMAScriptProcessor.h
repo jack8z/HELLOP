@@ -11,7 +11,7 @@ public:
 	~ECMAScriptProcessor();
 
 	// 运行ECMAScript脚本，在GdiplusPrintEngine类里调用
-	void doRun();
+	int doRun();
 
 	// 添加要打印的文本. style:文本的样式，JSON格式
 	void addText(std::string text, double x, double y, std::string style);

@@ -1,7 +1,7 @@
-﻿#include "HtmlProcessor.h"
+﻿#include "HtmlRender.h"
 #include<boost/filesystem.hpp>
 
-HtmlProcessor::HtmlProcessor(HDC hdcPrinter) {
+HtmlRender::HtmlRender(HDC hdcPrinter) {
 	m_hdcPrinter = hdcPrinter;
 
 	m_pLiteContext = new litehtml::context();
@@ -26,7 +26,7 @@ HtmlProcessor::HtmlProcessor(HDC hdcPrinter) {
 	m_pGraphics = new Graphics(m_hdcPrinter);
 }
 
-HtmlProcessor::~HtmlProcessor() {
+HtmlRender::~HtmlRender() {
 	if (m_pLiteContext) {
 		delete m_pLiteContext;
 	}
@@ -38,7 +38,7 @@ HtmlProcessor::~HtmlProcessor() {
 	}
 }
 
-void HtmlProcessor::addHtml(std::wstring html, double x, double y, double width, double height) {
+void HtmlRender::drawHtml(std::wstring html, double x, double y, double width, double height) {
 	m_pHtmlContainer->initHtml(html);
 	m_pHtmlContainer->draw(m_hdcPrinter, x, y, width, height);
 }

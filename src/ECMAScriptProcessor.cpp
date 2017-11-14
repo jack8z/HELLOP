@@ -1,6 +1,6 @@
 ﻿#include "ECMAScriptProcessor.h"
 #include "BarcodeRender.h"
-#include "HtmlProcessor.h"
+#include "HtmlRender.h"
 
 ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
 	m_hdcPrinter = hdcPrinter;
@@ -143,8 +143,8 @@ void ECMAScriptProcessor::addQrCode(std::string text, double x, double y, std::s
 
 void ECMAScriptProcessor::addHtml(std::string html, double x, double y, double width, double height) {
 	if (NULL != m_pGraphics) {
-		HtmlProcessor htmlProcessor(m_hdcPrinter);
-		htmlProcessor.addHtml(todop_to_wstring(html), x, y, width, height);
+		HtmlRender htmlRender(m_hdcPrinter);
+		htmlRender.drawHtml(todop_to_wstring(html), x, y, width, height);
 	}
 }
 
@@ -159,7 +159,7 @@ void ECMAScriptProcessor::addNewPage() {
 	m_pGraphics = new Graphics(m_hdcPrinter);
 }
 
-void ECMAScriptProcessor::doRun() {
+int ECMAScriptProcessor::doRun() {
 	std::string fileName("render.js");
 	push_file_as_string(fileName);
 
@@ -169,8 +169,11 @@ void ECMAScriptProcessor::doRun() {
 			duk_get_prop_string(m_pDukContext, -1, "stack");
 			LOG(ERROR) << "Duktape Error: " << duk_safe_to_string(m_pDukContext, -1) << std::endl;
 			duk_pop(m_pDukContext);
+            return -1;
 		}
 	} catch(...) {
 		LOG(ERROR) << "Failed to run ECMAScript"  << std::endl;
 	}
+
+    return 0;
 }

@@ -28,8 +28,9 @@ void HtmlContainer::draw(HDC hdc, double x, double y, double width, double heigh
 
 	LOG(DEBUG) << "best_width : " << best_width << std::endl;
 	
-	litehtml::position clip(x, y, width, height);
-	m_doc->draw((litehtml::uint_ptr)hdc, -50, -100, &clip);
+	//litehtml::position clip(x, y, width, height);
+	litehtml::position clip(0, 0, 400, 400);
+	m_doc->draw((litehtml::uint_ptr)hdc, x, y, &clip);
 }
 
 litehtml::uint_ptr HtmlContainer::create_font(const litehtml::tchar_t* faceName, int size, int weight, litehtml::font_style italic, unsigned int decoration, litehtml::font_metrics* fm) {
@@ -83,28 +84,37 @@ int HtmlContainer::text_width( const litehtml::tchar_t* text, litehtml::uint_ptr
 	
 	int width = (int)(boundingBox.GetRight() - boundingBox.GetLeft());
 
+    //LOG(DEBUG) << "text : " << text << " , text_width : " << width << std::endl;
+
 	return width;
 }
 
 void HtmlContainer::draw_text( litehtml::uint_ptr hdc, const litehtml::tchar_t* text, litehtml::uint_ptr hFont, litehtml::web_color color, const litehtml::position& pos )
 {
 	PointF pointF(pos.left(), pos.top());
+    // StringFormat sf;
+    // double w = pos.right() - pos.left();
+    // double h = pos.bottom();
+    // RectF rectF(pos.left(), pos.top(), w, h);
 	SolidBrush brush(Color(255, color.red, color.green, color.blue)); 
 	Graphics g((HDC)hdc);
 	g.DrawString(utf8_to_wchar(text), -1, (Font *)hFont, pointF, &brush);
+	// g.DrawString(utf8_to_wchar(text), -1, (Font *)hFont, rectF, &sf, &brush);
+    // LOG(DEBUG) << "text : " << text << " , pos : " << pos.left() << "," << pos.top() << "," << w << "," << h << std::endl;
 }
 
 int HtmlContainer::pt_to_px( int pt )
 {
 	HDC dc = GetDC(NULL);
 	int ret = MulDiv(pt, GetDeviceCaps(dc, LOGPIXELSY), 72);
+    LOG(DEBUG) << "pt : " << pt << " to px : " << ret << std::endl;
 	ReleaseDC(NULL, dc);
 	return ret;
 }
 
 int HtmlContainer::get_default_font_size() const
 {
-	return 16;
+	return 12;
 }
 
 const litehtml::tchar_t* HtmlContainer::get_default_font_name() const
@@ -213,8 +223,8 @@ void HtmlContainer::del_clip()
 
 void HtmlContainer::get_client_rect( litehtml::position& client ) const
 {
-	client.x		= 10;
-	client.y		= 10;
+	client.x		= 0;
+	client.y		= 0;
 	client.width	= 400;
 	client.height	= 600;
 }
@@ -241,6 +251,8 @@ void HtmlContainer::get_media_features(litehtml::media_features& media)  const
 	media.device_height	= GetDeviceCaps(hdc, VERTRES);
 
 	ReleaseDC(NULL, hdc);
+
+	LOG(DEBUG) << "media.resolution : " << media.resolution << " , media.device_width : " << media.device_width << " , media.device_height : " << media.device_height << std::endl;
 }
 
 void HtmlContainer::get_language(litehtml::tstring& language, litehtml::tstring & culture) const

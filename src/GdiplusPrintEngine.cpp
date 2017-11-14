@@ -81,13 +81,17 @@ int GdiplusPrintEngine::doPrint() {
 
 		// 解析ECMAScript，并执行渲染指令
         ECMAScriptProcessor *pScriptProcessor = new ECMAScriptProcessor(m_hdcPrinter);
-        pScriptProcessor->doRun();
+        int scriptRet = pScriptProcessor->doRun();
         delete pScriptProcessor;
 
         EndDoc(m_hdcPrinter);
 
         if (m_hdcPrinter) {
             DeleteDC(m_hdcPrinter);
+        }
+
+        if (0!=scriptRet) {
+            return -4;
         }
     }
 
