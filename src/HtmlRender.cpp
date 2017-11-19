@@ -40,7 +40,7 @@ hellop::HtmlRender::~HtmlRender() {
 	}
 }
 
-void hellop::HtmlRender::drawHtml(std::wstring html, double x, double y, double width, double height) {
+void hellop::HtmlRender::drawHtml(std::wstring html, int x, int y, int width, int height) {
 	m_pHtmlContainer->initHtml(html);
 	m_pHtmlContainer->draw(m_hdcPrinter, x, y, width, height);
 }

@@ -20,18 +20,9 @@ void hellop::HtmlContainer::initHtml(std::wstring html) {
 	m_doc = litehtml::document::createFromUTF8(buff.c_str(), this, m_pLiteContext);
 }
 
-void hellop::HtmlContainer::draw(HDC hdc, double x, double y, double width, double height) {
-	HDC dc = GetDC(NULL);
-	Graphics g(dc);
-	// 将毫米转为像素
-	int pixelX = mm_to_px(x, dpi_to_ppi(g.GetDpiX()));
-	int pixelWidth = mm_to_px(width, dpi_to_ppi(g.GetDpiX()));
-	int pixelY = mm_to_px(y, dpi_to_ppi(g.GetDpiY()));
-	int pixelHeight = mm_to_px(height, dpi_to_ppi(g.GetDpiY()));
-	ReleaseDC(NULL, dc);
-
-	int best_width = m_doc->render(pixelWidth);
-	if(best_width < pixelWidth) {
+void hellop::HtmlContainer::draw(HDC hdc, int x, int y, int width, int height) {
+	int best_width = m_doc->render(width);
+	if(best_width < width) {
 		m_doc->render(best_width);
 	}
 
@@ -39,7 +30,7 @@ void hellop::HtmlContainer::draw(HDC hdc, double x, double y, double width, doub
 	
 	//litehtml::position clip(x, y, width, height);
 	litehtml::position clip(0, 0, 400, 400);
-	m_doc->draw((litehtml::uint_ptr)hdc, pixelX, pixelY, &clip);
+	m_doc->draw((litehtml::uint_ptr)hdc, x, y, &clip);
 }
 
 litehtml::uint_ptr hellop::HtmlContainer::create_font(const litehtml::tchar_t* faceName, int size, int weight, litehtml::font_style italic, unsigned int decoration, litehtml::font_metrics* fm) {

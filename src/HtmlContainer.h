@@ -25,7 +25,7 @@ namespace hellop {
 		
 	public:
 		void initHtml(std::wstring html);
-		void draw(HDC hdc, double x, double y, double width, double height);
+		void draw(HDC hdc, int x, int y, int width, int height);
 
 	public:
 		virtual litehtml::uint_ptr	create_font(const litehtml::tchar_t* faceName, int size, int weight, litehtml::font_style italic, unsigned int decoration, litehtml::font_metrics* fm);

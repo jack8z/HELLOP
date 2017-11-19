@@ -105,7 +105,7 @@ void hellop::ECMAScriptProcessor::push_file_as_string(std::string fileName) {
 
 void hellop::ECMAScriptProcessor::addText(std::string text, double x, double y, std::string style) {
 	if (NULL!=m_pGraphics) {
-		PointF pointF(x, y);
+		PointF pointF((REAL)x, (REAL)y);
 		m_pGraphics->DrawString(todop_to_wstring(text).c_str(), -1, m_pDefaultFont, pointF, m_pDefaultBrush);
 	}
 }
@@ -130,13 +130,21 @@ void hellop::ECMAScriptProcessor::addEllipse(double x1, double y1, double x2, do
 
 void hellop::ECMAScriptProcessor::addBarCode(std::string text, double x, double y, std::string style) {
 	if (NULL != m_pGraphics) {
+		// 将毫米转为像素
+		int pixelX = mm_to_px(x, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY = mm_to_px(y, dpi_to_ppi(m_pGraphics->GetDpiY()));
+
 		BarcodeRender barcodeRender(m_pGraphics);
-		barcodeRender.drawCode128Auto(todop_to_wstring(text), x, y);
+		barcodeRender.drawCode128Auto(todop_to_wstring(text), pixelX, pixelY);
 	}
 }
 
 void hellop::ECMAScriptProcessor::addQrCode(std::string text, double x, double y, std::string style) {
 	if (NULL != m_pGraphics) {
+		// 将毫米转为像素
+		int pixelX = mm_to_px(x, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY = mm_to_px(y, dpi_to_ppi(m_pGraphics->GetDpiY()));
+
 		BarcodeRender barcodeRender(m_pGraphics);
 		barcodeRender.drawQrcode(todop_to_wstring(text), x, y);
 	}
@@ -144,9 +152,15 @@ void hellop::ECMAScriptProcessor::addQrCode(std::string text, double x, double y
 
 void hellop::ECMAScriptProcessor::addHtml(std::string html, double x, double y, double width, double height) {
 	if (NULL != m_pGraphics) {
+		// 将毫米转为像素
+		int pixelX = mm_to_px(x, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelWidth = mm_to_px(width, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY = mm_to_px(y, dpi_to_ppi(m_pGraphics->GetDpiY()));
+		int pixelHeight = mm_to_px(height, dpi_to_ppi(m_pGraphics->GetDpiY()));
+
 		Paper paper(paper_type_a4);
 		HtmlRender htmlRender(m_hdcPrinter, paper);
-		htmlRender.drawHtml(todop_to_wstring(html), x, y, width, height);
+		htmlRender.drawHtml(todop_to_wstring(html), pixelX, pixelY, pixelWidth, pixelHeight);
 	}
 }
 

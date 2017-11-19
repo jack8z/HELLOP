@@ -13,7 +13,7 @@ namespace hellop {
         HtmlRender(HDC hdcPrinter, Paper paper);
         ~HtmlRender();
 
-        void drawHtml(std::wstring html, double x, double y, double width, double height);
+        void drawHtml(std::wstring html, int x, int y, int width, int height);
 
     private:
         HDC m_hdcPrinter; // 打印机上下文
