@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -60,7 +60,7 @@ namespace hellop {
 		std::streampos begin = fs.tellg();
 		fs.seekg(0, ios::end);
 		std::streampos end = fs.tellg();
-		unsigned int size = end - begin;
+		unsigned int size = (unsigned int)(end - begin);
 		
 		char *pBuff = new char[size+1];
 		if (pBuff) {
@@ -72,5 +72,23 @@ namespace hellop {
 			delete pBuff;
 		}
 		return 0;
+	}
+
+	// 将点转为像素.dpi:每英寸的点数
+	inline int pt_to_px(int pt, double dpi) {
+		int iDpi = (int) dpi * 100;
+		return MulDiv(pt, iDpi, 7200);
+	}
+
+	// 将毫米转为像素.ppi:每英寸的像素数
+	inline int mm_to_px(double mm, int ppi) {
+		int m = (int) mm * 100;
+		return MulDiv(m, ppi, 2540); // 将毫米转为像素
+	}
+
+	// 将dpi转为ppi
+	inline int dpi_to_ppi(double dpi) {
+		int ppi = (int) dpi;
+		return ppi;
 	}
 }

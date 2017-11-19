@@ -2,6 +2,7 @@
 
 #include "afxTodop.h"
 #include "dukglue/dukglue.h"
+#include "Paper.h"
 
 #include "easylogging++.h"
 
@@ -40,11 +41,11 @@ namespace hellop {
 		void push_file_as_string(std::string fileName);
 		
 	private:
-		duk_context *m_pDukContext;
+		duk_context *m_pDukContext; // Duktape上下文
 
 		HDC m_hdcPrinter; // 打印机上下文
-		
 		Graphics *m_pGraphics;
+		
 		Pen *m_pDefaultPen; // 默认画笔
 		SolidBrush *m_pDefaultBrush; // 默认画刷
 		Font *m_pDefaultFont; // 默认字体

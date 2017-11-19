@@ -18,7 +18,13 @@ hellop::BarcodeRender::~BarcodeRender() {
 }
 
 // 绘制Barcode，第一个参数symbology的值为：zint_symbol.symbology,具体请参考zint。rotateAngle旋转的角度，支持:0,90,180,270.autoZoom是否自动缩放,为true且width/height大于1时,将自动缩放条码以按width/height完整显示
-int hellop::BarcodeRender::drawBarcode(int symbology, TString content, int x, int y, int width, int height, int rotateAngle, bool autoZoom) {
+int hellop::BarcodeRender::drawBarcode(int symbology, TString content, double x, double y, double width, double height, int rotateAngle, bool autoZoom) {
+    // 将毫米转为像素
+    int pixelX = mm_to_px(x, dpi_to_ppi(m_pGraphics->GetDpiX()));
+    int pixelWidth = mm_to_px(width, dpi_to_ppi(m_pGraphics->GetDpiX()));
+    int pixelY = mm_to_px(y, dpi_to_ppi(m_pGraphics->GetDpiY()));
+    int pixelHeight = mm_to_px(height, dpi_to_ppi(m_pGraphics->GetDpiY()));
+
     if (NULL!=m_pZintSymbol) {
         ZBarcode_Clear(m_pZintSymbol);
 
@@ -41,21 +47,21 @@ int hellop::BarcodeRender::drawBarcode(int symbology, TString content, int x, in
                   i += 3;
              }
         }
-        m_pGraphics->DrawImage(&b, x, y);
+        m_pGraphics->DrawImage(&b, pixelX, pixelY);
 
         return 0;
     }
     return -1;
 }
 
-int hellop::BarcodeRender::drawCode128Auto(TString content, int x, int y, int width, int height, int rotateAngle, bool autoZoom) {
+int hellop::BarcodeRender::drawCode128Auto(TString content, double x, double y, double width, double height, int rotateAngle, bool autoZoom) {
     return drawBarcode(BARCODE_CODE128, content, x, y, width, height, rotateAngle, autoZoom);
 }
 
-int hellop::BarcodeRender::drawCode128B(TString content, int x, int y, int width, int height, int rotateAngle, bool autoZoom) {
+int hellop::BarcodeRender::drawCode128B(TString content, double x, double y, double width, double height, int rotateAngle, bool autoZoom) {
     return drawBarcode(BARCODE_CODE128B, content, x, y, width, height, rotateAngle, autoZoom);
 }
 
-int hellop::BarcodeRender::drawQrcode(TString content, int x, int y, int width, int height, bool autoZoom) {
+int hellop::BarcodeRender::drawQrcode(TString content, double x, double y, double width, double height, bool autoZoom) {
     return drawBarcode(BARCODE_QRCODE, content, x, y, width, height, 0, autoZoom);
 }

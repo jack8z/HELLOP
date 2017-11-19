@@ -5,7 +5,8 @@
 hellop::ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
 	m_hdcPrinter = hdcPrinter;
 	StartPage(m_hdcPrinter);
-    m_pGraphics = new Graphics(m_hdcPrinter);
+	m_pGraphics = new Graphics(m_hdcPrinter);
+	m_pGraphics->SetPageUnit(UnitMillimeter); // 设置页面尺寸的单位为：毫米
 
 	m_pDukContext = duk_create_heap_default();
 	if (!m_pDukContext) {
@@ -143,7 +144,8 @@ void hellop::ECMAScriptProcessor::addQrCode(std::string text, double x, double y
 
 void hellop::ECMAScriptProcessor::addHtml(std::string html, double x, double y, double width, double height) {
 	if (NULL != m_pGraphics) {
-		HtmlRender htmlRender(m_hdcPrinter);
+		Paper paper(paper_type_a4);
+		HtmlRender htmlRender(m_hdcPrinter, paper);
 		htmlRender.drawHtml(todop_to_wstring(html), x, y, width, height);
 	}
 }
@@ -157,6 +159,7 @@ void hellop::ECMAScriptProcessor::addNewPage() {
 	StartPage(m_hdcPrinter);
 	
 	m_pGraphics = new Graphics(m_hdcPrinter);
+	m_pGraphics->SetPageUnit(UnitMillimeter); // 设置页面尺寸的单位为：毫米
 }
 
 int hellop::ECMAScriptProcessor::doRun() {

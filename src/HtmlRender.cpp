@@ -1,7 +1,7 @@
 ﻿#include "HtmlRender.h"
 #include<boost/filesystem.hpp>
 
-hellop::HtmlRender::HtmlRender(HDC hdcPrinter) {
+hellop::HtmlRender::HtmlRender(HDC hdcPrinter, Paper paper) {
 	m_hdcPrinter = hdcPrinter;
 
 	m_pLiteContext = new litehtml::context();
@@ -24,6 +24,8 @@ hellop::HtmlRender::HtmlRender(HDC hdcPrinter) {
 	m_pHtmlContainer = new HtmlContainer(m_pLiteContext);
 
 	m_pGraphics = new Graphics(m_hdcPrinter);
+
+	mPaper = paper;
 }
 
 hellop::HtmlRender::~HtmlRender() {

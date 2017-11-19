@@ -21,8 +21,17 @@ void hellop::HtmlContainer::initHtml(std::wstring html) {
 }
 
 void hellop::HtmlContainer::draw(HDC hdc, double x, double y, double width, double height) {
-	int best_width = m_doc->render((int)width);
-	if(best_width < width) {
+	HDC dc = GetDC(NULL);
+	Graphics g(dc);
+	// 将毫米转为像素
+	int pixelX = mm_to_px(x, dpi_to_ppi(g.GetDpiX()));
+	int pixelWidth = mm_to_px(width, dpi_to_ppi(g.GetDpiX()));
+	int pixelY = mm_to_px(y, dpi_to_ppi(g.GetDpiY()));
+	int pixelHeight = mm_to_px(height, dpi_to_ppi(g.GetDpiY()));
+	ReleaseDC(NULL, dc);
+
+	int best_width = m_doc->render(pixelWidth);
+	if(best_width < pixelWidth) {
 		m_doc->render(best_width);
 	}
 
@@ -30,7 +39,7 @@ void hellop::HtmlContainer::draw(HDC hdc, double x, double y, double width, doub
 	
 	//litehtml::position clip(x, y, width, height);
 	litehtml::position clip(0, 0, 400, 400);
-	m_doc->draw((litehtml::uint_ptr)hdc, x, y, &clip);
+	m_doc->draw((litehtml::uint_ptr)hdc, pixelX, pixelY, &clip);
 }
 
 litehtml::uint_ptr hellop::HtmlContainer::create_font(const litehtml::tchar_t* faceName, int size, int weight, litehtml::font_style italic, unsigned int decoration, litehtml::font_metrics* fm) {
@@ -63,7 +72,7 @@ litehtml::uint_ptr hellop::HtmlContainer::create_font(const litehtml::tchar_t* f
 	fntStyle = fntStyle | ((decoration & litehtml::font_decoration_underline) ? FontStyleUnderline : FontStyleRegular);
 
 	FontFamily fontFamily(fnt_name.c_str());
-	Font* pFont = new Font(&fontFamily, size, fntStyle, UnitPoint);
+	Font* pFont = new Font(&fontFamily, (REAL)size, fntStyle, UnitPoint);
 
 	return (litehtml::uint_ptr) pFont;
 }
@@ -91,7 +100,7 @@ int hellop::HtmlContainer::text_width( const litehtml::tchar_t* text, litehtml::
 
 void hellop::HtmlContainer::draw_text( litehtml::uint_ptr hdc, const litehtml::tchar_t* text, litehtml::uint_ptr hFont, litehtml::web_color color, const litehtml::position& pos )
 {
-	PointF pointF(pos.left(), pos.top());
+	PointF pointF((REAL)pos.left(), (REAL)pos.top());
     // StringFormat sf;
     // double w = pos.right() - pos.left();
     // double h = pos.bottom();

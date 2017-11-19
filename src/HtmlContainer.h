@@ -67,7 +67,9 @@ namespace hellop {
 
 	private:
 		litehtml::document::ptr		m_doc;
-		std::map<std::wstring, litehtml::uint_ptr> m_images; // 图片的缓存
 		litehtml::context *m_pLiteContext;
+
+		std::map<std::wstring, litehtml::uint_ptr> m_images; // 图片的缓存
+		litehtml::position::vector m_clips;
 	};
 }
