@@ -4,7 +4,7 @@
 
 #include "easylogging++.h"
 
-TodopServer::TodopServer() {
+hellop::TodopServer::TodopServer() {
     m_port = 30303;
 
     // m_server.get_alog().set_ostream(&m_logFileStream);
@@ -23,11 +23,11 @@ TodopServer::TodopServer() {
     ));
 }
 
-TodopServer::~TodopServer() {
+hellop::TodopServer::~TodopServer() {
     // do nothing
 }
 
-void TodopServer::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg) {
+void hellop::TodopServer::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg) {
     LOG(DEBUG) << "on_message called with hdl: " << hdl.lock().get()
         << " and message: " << msg->get_payload()
         << std::endl;
@@ -95,7 +95,7 @@ void TodopServer::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server
     }
 }
 
-void TodopServer::DoRun() {
+void hellop::TodopServer::DoRun() {
     // Listen on port 30303
     m_server.listen(m_port);
 

@@ -2,7 +2,7 @@
 #include "BarcodeRender.h"
 #include "HtmlRender.h"
 
-ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
+hellop::ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
 	m_hdcPrinter = hdcPrinter;
 	StartPage(m_hdcPrinter);
     m_pGraphics = new Graphics(m_hdcPrinter);
@@ -22,7 +22,7 @@ ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
 	initDuktape();
 }
 
-ECMAScriptProcessor::~ECMAScriptProcessor() {
+hellop::ECMAScriptProcessor::~ECMAScriptProcessor() {
 	EndPage(m_hdcPrinter);
 	if (NULL!=m_pGraphics) {
 		delete m_pGraphics;
@@ -49,9 +49,9 @@ ECMAScriptProcessor::~ECMAScriptProcessor() {
 	}
 }
 
-int ECMAScriptProcessor::initDuktape() {
+int hellop::ECMAScriptProcessor::initDuktape() {
 	try {
-		dukglue_register_global(m_pDukContext, this, "todop");
+		dukglue_register_global(m_pDukContext, this, "hellop");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::log_debug, "debug");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addText, "addText");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addLine, "addLine");
@@ -69,11 +69,11 @@ int ECMAScriptProcessor::initDuktape() {
 	return 0;
 }
 
-void ECMAScriptProcessor::log_debug(std::string text) {
+void hellop::ECMAScriptProcessor::log_debug(std::string text) {
 	LOG(DEBUG) << text << std::endl;
 }
 
-void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
+void hellop::ECMAScriptProcessor::push_file_as_string(std::string fileName) {
 	/*
 	std::string data;
 	if(0==read_file(fileName, data)){
@@ -102,53 +102,53 @@ void ECMAScriptProcessor::push_file_as_string(std::string fileName) {
 	}
 }
 
-void ECMAScriptProcessor::addText(std::string text, double x, double y, std::string style) {
+void hellop::ECMAScriptProcessor::addText(std::string text, double x, double y, std::string style) {
 	if (NULL!=m_pGraphics) {
 		PointF pointF(x, y);
 		m_pGraphics->DrawString(todop_to_wstring(text).c_str(), -1, m_pDefaultFont, pointF, m_pDefaultBrush);
 	}
 }
 
-void ECMAScriptProcessor::addLine(double x1, double y1, double x2, double y2, std::string style) {
+void hellop::ECMAScriptProcessor::addLine(double x1, double y1, double x2, double y2, std::string style) {
 	if (NULL != m_pGraphics) {
 		m_pGraphics->DrawLine(m_pDefaultPen, (REAL)x1, (REAL)y1, (REAL)x2, (REAL)y2);
 	}
 }
 
-void ECMAScriptProcessor::addRectangle(double x1, double y1, double x2, double y2, std::string style) {
+void hellop::ECMAScriptProcessor::addRectangle(double x1, double y1, double x2, double y2, std::string style) {
 	if (NULL != m_pGraphics) {
 		m_pGraphics->DrawRectangle(m_pDefaultPen, (REAL)x1, (REAL)y1, (REAL)x2, (REAL)y2);
 	}
 }
 
-void ECMAScriptProcessor::addEllipse(double x1, double y1, double x2, double y2, std::string style) {
+void hellop::ECMAScriptProcessor::addEllipse(double x1, double y1, double x2, double y2, std::string style) {
 	if (NULL != m_pGraphics) {
 		m_pGraphics->DrawEllipse(m_pDefaultPen, (REAL)x1, (REAL)y1, (REAL)x2, (REAL)y2);
 	}
 }
 
-void ECMAScriptProcessor::addBarCode(std::string text, double x, double y, std::string style) {
+void hellop::ECMAScriptProcessor::addBarCode(std::string text, double x, double y, std::string style) {
 	if (NULL != m_pGraphics) {
 		BarcodeRender barcodeRender(m_pGraphics);
 		barcodeRender.drawCode128Auto(todop_to_wstring(text), x, y);
 	}
 }
 
-void ECMAScriptProcessor::addQrCode(std::string text, double x, double y, std::string style) {
+void hellop::ECMAScriptProcessor::addQrCode(std::string text, double x, double y, std::string style) {
 	if (NULL != m_pGraphics) {
 		BarcodeRender barcodeRender(m_pGraphics);
 		barcodeRender.drawQrcode(todop_to_wstring(text), x, y);
 	}
 }
 
-void ECMAScriptProcessor::addHtml(std::string html, double x, double y, double width, double height) {
+void hellop::ECMAScriptProcessor::addHtml(std::string html, double x, double y, double width, double height) {
 	if (NULL != m_pGraphics) {
 		HtmlRender htmlRender(m_hdcPrinter);
 		htmlRender.drawHtml(todop_to_wstring(html), x, y, width, height);
 	}
 }
 
-void ECMAScriptProcessor::addNewPage() {
+void hellop::ECMAScriptProcessor::addNewPage() {
 	if (NULL != m_pGraphics) {
 		delete m_pGraphics;
 	}
@@ -159,7 +159,7 @@ void ECMAScriptProcessor::addNewPage() {
 	m_pGraphics = new Graphics(m_hdcPrinter);
 }
 
-int ECMAScriptProcessor::doRun() {
+int hellop::ECMAScriptProcessor::doRun() {
 	std::string fileName("render.js");
 	push_file_as_string(fileName);
 

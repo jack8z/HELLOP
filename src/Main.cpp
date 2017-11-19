@@ -12,7 +12,7 @@ unsigned __stdcall TodopServerRun(void* pParam){
     {
         // MessageBox(NULL, _T("TodopServerRun begin..."), NULL, MB_OK);
 
-        TodopServer todopServer;
+        hellop::TodopServer todopServer;
         todopServer.DoRun();
         
         // MessageBox(NULL, _T("TodopServerRun end."), NULL, MB_OK);

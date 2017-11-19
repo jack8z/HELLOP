@@ -1,7 +1,7 @@
 ﻿#include "HtmlRender.h"
 #include<boost/filesystem.hpp>
 
-HtmlRender::HtmlRender(HDC hdcPrinter) {
+hellop::HtmlRender::HtmlRender(HDC hdcPrinter) {
 	m_hdcPrinter = hdcPrinter;
 
 	m_pLiteContext = new litehtml::context();
@@ -26,7 +26,7 @@ HtmlRender::HtmlRender(HDC hdcPrinter) {
 	m_pGraphics = new Graphics(m_hdcPrinter);
 }
 
-HtmlRender::~HtmlRender() {
+hellop::HtmlRender::~HtmlRender() {
 	if (m_pLiteContext) {
 		delete m_pLiteContext;
 	}
@@ -38,7 +38,7 @@ HtmlRender::~HtmlRender() {
 	}
 }
 
-void HtmlRender::drawHtml(std::wstring html, double x, double y, double width, double height) {
+void hellop::HtmlRender::drawHtml(std::wstring html, double x, double y, double width, double height) {
 	m_pHtmlContainer->initHtml(html);
 	m_pHtmlContainer->draw(m_hdcPrinter, x, y, width, height);
 }

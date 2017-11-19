@@ -22,22 +22,24 @@ using namespace Gdiplus;
 #pragma comment(lib, "gdiplus.lib")
 // gdi+ ----------
 
-class GdiplusPrintEngine
-{
-public:
-    GdiplusPrintEngine(); // 取系统默认打印机
-    GdiplusPrintEngine(TString printerName);
-    ~GdiplusPrintEngine();
-    
-    int doPrint(); // 打印
-    std::list<TString> getSystemFontFamilys(); // 获取系统字体列表
-    std::list<TString> getLocalPrinters(); // 获取本机安装的打印机列表
+namespace hellop {
+    class GdiplusPrintEngine
+    {
+    public:
+        GdiplusPrintEngine(); // 取系统默认打印机
+        GdiplusPrintEngine(TString printerName);
+        ~GdiplusPrintEngine();
+        
+        int doPrint(); // 打印
+        std::list<TString> getSystemFontFamilys(); // 获取系统字体列表
+        std::list<TString> getLocalPrinters(); // 获取本机安装的打印机列表
 
-private:
-    void initInstance(TString printerName); // 初始化实例
+    private:
+        void initInstance(TString printerName); // 初始化实例
 
-private:
-    TString m_printerName; // 打印机名称
-    HDC m_hdcPrinter; // 打印机上下文件
-    ULONG_PTR m_gdiplusToken;
-};
+    private:
+        TString m_printerName; // 打印机名称
+        HDC m_hdcPrinter; // 打印机上下文件
+        ULONG_PTR m_gdiplusToken;
+    };
+}

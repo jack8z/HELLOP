@@ -1,14 +1,14 @@
 ﻿#include "HtmlContainer.h"
 
-HtmlContainer::HtmlContainer(litehtml::context *pContext) {
+hellop::HtmlContainer::HtmlContainer(litehtml::context *pContext) {
 	m_pLiteContext = pContext;
 }
 
-HtmlContainer::~HtmlContainer() {
+hellop::HtmlContainer::~HtmlContainer() {
 	// do nothing
 }
 
-void HtmlContainer::initHtml(std::wstring html) {
+void hellop::HtmlContainer::initHtml(std::wstring html) {
 	if(m_doc) {
 		// delete m_doc;
 	}
@@ -20,7 +20,7 @@ void HtmlContainer::initHtml(std::wstring html) {
 	m_doc = litehtml::document::createFromUTF8(buff.c_str(), this, m_pLiteContext);
 }
 
-void HtmlContainer::draw(HDC hdc, double x, double y, double width, double height) {
+void hellop::HtmlContainer::draw(HDC hdc, double x, double y, double width, double height) {
 	int best_width = m_doc->render((int)width);
 	if(best_width < width) {
 		m_doc->render(best_width);
@@ -33,7 +33,7 @@ void HtmlContainer::draw(HDC hdc, double x, double y, double width, double heigh
 	m_doc->draw((litehtml::uint_ptr)hdc, x, y, &clip);
 }
 
-litehtml::uint_ptr HtmlContainer::create_font(const litehtml::tchar_t* faceName, int size, int weight, litehtml::font_style italic, unsigned int decoration, litehtml::font_metrics* fm) {
+litehtml::uint_ptr hellop::HtmlContainer::create_font(const litehtml::tchar_t* faceName, int size, int weight, litehtml::font_style italic, unsigned int decoration, litehtml::font_metrics* fm) {
 	std::wstring fnt_name = L"微软雅黑";
 
 	litehtml::string_vector fonts;
@@ -68,12 +68,12 @@ litehtml::uint_ptr HtmlContainer::create_font(const litehtml::tchar_t* faceName,
 	return (litehtml::uint_ptr) pFont;
 }
 
-void HtmlContainer::delete_font( litehtml::uint_ptr hFont ) {
+void hellop::HtmlContainer::delete_font( litehtml::uint_ptr hFont ) {
 	Font* pFont = (Font *) hFont;
 	delete pFont;
 }
 
-int HtmlContainer::text_width( const litehtml::tchar_t* text, litehtml::uint_ptr hFont )
+int hellop::HtmlContainer::text_width( const litehtml::tchar_t* text, litehtml::uint_ptr hFont )
 {
 	PointF pointF(0, 0);
 	RectF boundingBox;
@@ -89,7 +89,7 @@ int HtmlContainer::text_width( const litehtml::tchar_t* text, litehtml::uint_ptr
 	return width;
 }
 
-void HtmlContainer::draw_text( litehtml::uint_ptr hdc, const litehtml::tchar_t* text, litehtml::uint_ptr hFont, litehtml::web_color color, const litehtml::position& pos )
+void hellop::HtmlContainer::draw_text( litehtml::uint_ptr hdc, const litehtml::tchar_t* text, litehtml::uint_ptr hFont, litehtml::web_color color, const litehtml::position& pos )
 {
 	PointF pointF(pos.left(), pos.top());
     // StringFormat sf;
@@ -103,7 +103,7 @@ void HtmlContainer::draw_text( litehtml::uint_ptr hdc, const litehtml::tchar_t* 
     // LOG(DEBUG) << "text : " << text << " , pos : " << pos.left() << "," << pos.top() << "," << w << "," << h << std::endl;
 }
 
-int HtmlContainer::pt_to_px( int pt )
+int hellop::HtmlContainer::pt_to_px( int pt )
 {
 	HDC dc = GetDC(NULL);
 	int ret = MulDiv(pt, GetDeviceCaps(dc, LOGPIXELSY), 72);
@@ -112,17 +112,17 @@ int HtmlContainer::pt_to_px( int pt )
 	return ret;
 }
 
-int HtmlContainer::get_default_font_size() const
+int hellop::HtmlContainer::get_default_font_size() const
 {
 	return 12;
 }
 
-const litehtml::tchar_t* HtmlContainer::get_default_font_name() const
+const litehtml::tchar_t* hellop::HtmlContainer::get_default_font_name() const
 {
 	return _t("Times New Roman");
 }
 
-void HtmlContainer::draw_list_marker( litehtml::uint_ptr hdc, const litehtml::list_marker& marker )
+void hellop::HtmlContainer::draw_list_marker( litehtml::uint_ptr hdc, const litehtml::list_marker& marker )
 {
 	if (!marker.image.empty()) {
 		// TODO draw image
@@ -149,7 +149,7 @@ void HtmlContainer::draw_list_marker( litehtml::uint_ptr hdc, const litehtml::li
 	}
 }
 
-void HtmlContainer::load_image( const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl, bool redraw_on_ready ) {
+void hellop::HtmlContainer::load_image( const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl, bool redraw_on_ready ) {
 	std::wstring url;
 	make_url(utf8_to_wchar(src), utf8_to_wchar(baseurl), url);
 	if(m_images.find(url.c_str()) == m_images.end()) {
@@ -163,7 +163,7 @@ void HtmlContainer::load_image( const litehtml::tchar_t* src, const litehtml::tc
 	}
 }
 
-void HtmlContainer::get_image_size( const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl, litehtml::size& sz ) {
+void hellop::HtmlContainer::get_image_size( const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl, litehtml::size& sz ) {
 	std::wstring url;
 	make_url(utf8_to_wchar(src), utf8_to_wchar(baseurl), url);
 /*
@@ -175,53 +175,53 @@ void HtmlContainer::get_image_size( const litehtml::tchar_t* src, const litehtml
 */
 }
 
-void HtmlContainer::draw_background( litehtml::uint_ptr hdc, const litehtml::background_paint& bg ) {
+void hellop::HtmlContainer::draw_background( litehtml::uint_ptr hdc, const litehtml::background_paint& bg ) {
 	// TODO
 }
 
-void HtmlContainer::draw_borders( litehtml::uint_ptr hdc, const litehtml::borders& borders, const litehtml::position& draw_pos, bool root ) {
+void hellop::HtmlContainer::draw_borders( litehtml::uint_ptr hdc, const litehtml::borders& borders, const litehtml::position& draw_pos, bool root ) {
 	// TODO
 }
 
-void HtmlContainer::set_caption( const litehtml::tchar_t* caption ) {
+void hellop::HtmlContainer::set_caption( const litehtml::tchar_t* caption ) {
 	// do nothing
 }
 
-void HtmlContainer::set_base_url( const litehtml::tchar_t* base_url ) {
+void hellop::HtmlContainer::set_base_url( const litehtml::tchar_t* base_url ) {
 	// do nothing
 }
 
-void HtmlContainer::link(const std::shared_ptr<litehtml::document>& doc, const litehtml::element::ptr& el) {
+void hellop::HtmlContainer::link(const std::shared_ptr<litehtml::document>& doc, const litehtml::element::ptr& el) {
 	// do nothing
 }
 
-void HtmlContainer::on_anchor_click( const litehtml::tchar_t* url, const litehtml::element::ptr& el ) {
+void hellop::HtmlContainer::on_anchor_click( const litehtml::tchar_t* url, const litehtml::element::ptr& el ) {
 	// do nothing
 }
 
-void HtmlContainer::set_cursor( const litehtml::tchar_t* cursor ) {
+void hellop::HtmlContainer::set_cursor( const litehtml::tchar_t* cursor ) {
 	// do nothing
 }
 
-void HtmlContainer::transform_text( litehtml::tstring& text, litehtml::text_transform tt ) {
+void hellop::HtmlContainer::transform_text( litehtml::tstring& text, litehtml::text_transform tt ) {
 	// do nothing
 }
 
-void HtmlContainer::import_css( litehtml::tstring& text, const litehtml::tstring& url, litehtml::tstring& baseurl ) {
+void hellop::HtmlContainer::import_css( litehtml::tstring& text, const litehtml::tstring& url, litehtml::tstring& baseurl ) {
 	// do nothing
 }
 
-void HtmlContainer::set_clip(const litehtml::position& pos, const litehtml::border_radiuses& bdr_radius, bool valid_x, bool valid_y)
+void hellop::HtmlContainer::set_clip(const litehtml::position& pos, const litehtml::border_radiuses& bdr_radius, bool valid_x, bool valid_y)
 {
 	// do nothing
 }
 
-void HtmlContainer::del_clip()
+void hellop::HtmlContainer::del_clip()
 {
 	// do nothing
 }
 
-void HtmlContainer::get_client_rect( litehtml::position& client ) const
+void hellop::HtmlContainer::get_client_rect( litehtml::position& client ) const
 {
 	client.x		= 0;
 	client.y		= 0;
@@ -229,12 +229,12 @@ void HtmlContainer::get_client_rect( litehtml::position& client ) const
 	client.height	= 600;
 }
 
-std::shared_ptr<litehtml::element> HtmlContainer::create_element(const litehtml::tchar_t* tag_name, const litehtml::string_map& attributes, const std::shared_ptr<litehtml::document>& doc)
+std::shared_ptr<litehtml::element> hellop::HtmlContainer::create_element(const litehtml::tchar_t* tag_name, const litehtml::string_map& attributes, const std::shared_ptr<litehtml::document>& doc)
 {
 	return 0;
 }
 
-void HtmlContainer::get_media_features(litehtml::media_features& media)  const
+void hellop::HtmlContainer::get_media_features(litehtml::media_features& media)  const
 {
 	litehtml::position client;
 	get_client_rect(client);
@@ -255,23 +255,23 @@ void HtmlContainer::get_media_features(litehtml::media_features& media)  const
 	LOG(DEBUG) << "media.resolution : " << media.resolution << " , media.device_width : " << media.device_width << " , media.device_height : " << media.device_height << std::endl;
 }
 
-void HtmlContainer::get_language(litehtml::tstring& language, litehtml::tstring & culture) const
+void hellop::HtmlContainer::get_language(litehtml::tstring& language, litehtml::tstring & culture) const
 {
 	language = _t("en");
 	culture = _t("");
 }
 
-litehtml::tstring HtmlContainer::resolve_color(const litehtml::tstring& color) const
+litehtml::tstring hellop::HtmlContainer::resolve_color(const litehtml::tstring& color) const
 {
 	return litehtml::tstring();
 }
 
-void HtmlContainer::make_url( LPCWSTR url, LPCWSTR basepath, std::wstring& out )
+void hellop::HtmlContainer::make_url( LPCWSTR url, LPCWSTR basepath, std::wstring& out )
 {
 	// TODO
 }
 
-void HtmlContainer::draw_ellipse( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color, int line_width ) {
+void hellop::HtmlContainer::draw_ellipse( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color, int line_width ) {
 	Gdiplus::Graphics graphics(hdc);
 	Gdiplus::LinearGradientBrush* brush = NULL;
 
@@ -282,7 +282,7 @@ void HtmlContainer::draw_ellipse( HDC hdc, int x, int y, int width, int height, 
 	graphics.DrawEllipse(&pen, x, y, width, height);
 }
 
-void HtmlContainer::fill_ellipse( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color ) {
+void hellop::HtmlContainer::fill_ellipse( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color ) {
 	Gdiplus::Graphics graphics(hdc);
 
 	graphics.SetCompositingQuality(Gdiplus::CompositingQualityHighQuality);
@@ -292,7 +292,7 @@ void HtmlContainer::fill_ellipse( HDC hdc, int x, int y, int width, int height, 
 	graphics.FillEllipse(&brush, x, y, width, height);
 }
 
-void HtmlContainer::fill_rect( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color, const litehtml::css_border_radius& radius ) {
+void hellop::HtmlContainer::fill_rect( HDC hdc, int x, int y, int width, int height, const litehtml::web_color& color, const litehtml::css_border_radius& radius ) {
 	Gdiplus::Graphics graphics(hdc);
 
 	Gdiplus::SolidBrush brush( Gdiplus::Color(color.alpha, color.red, color.green, color.blue) );

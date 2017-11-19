@@ -9,16 +9,16 @@
 
 #include "easylogging++.h"
 
-GdiplusPrintEngine::GdiplusPrintEngine() {
+hellop::GdiplusPrintEngine::GdiplusPrintEngine() {
     TString printerName;
     initInstance(printerName);
 }
 
-GdiplusPrintEngine::GdiplusPrintEngine(TString printerName) {
+hellop::GdiplusPrintEngine::GdiplusPrintEngine(TString printerName) {
     initInstance(printerName);    
 }
 
-void GdiplusPrintEngine::initInstance(TString printerName) {
+void hellop::GdiplusPrintEngine::initInstance(TString printerName) {
     if (printerName.empty()) {
         DWORD printerNameSize; // 打印机名字的长度
         
@@ -47,14 +47,14 @@ void GdiplusPrintEngine::initInstance(TString printerName) {
     GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
 }
 
-GdiplusPrintEngine::~GdiplusPrintEngine() {
+hellop::GdiplusPrintEngine::~GdiplusPrintEngine() {
     if (m_gdiplusToken) {
         GdiplusShutdown(m_gdiplusToken);
     }
 }
 
 
-int GdiplusPrintEngine::doPrint() {
+int hellop::GdiplusPrintEngine::doPrint() {
     DOCINFO docInfo;
     ZeroMemory(&docInfo, sizeof(docInfo));
     docInfo.cbSize = sizeof(docInfo);
@@ -98,8 +98,8 @@ int GdiplusPrintEngine::doPrint() {
     return 0;
 }
 
-std::list<TString> GdiplusPrintEngine::getSystemFontFamilys() {
-    std::list<TString> fontFamilyList;
+std::list<hellop::TString> hellop::GdiplusPrintEngine::getSystemFontFamilys() {
+    std::list<hellop::TString> fontFamilyList;
 
     // 枚举所有安装的字体
     InstalledFontCollection installedFontCollection; 
@@ -119,7 +119,7 @@ std::list<TString> GdiplusPrintEngine::getSystemFontFamilys() {
             // LOG(DEBUG) << "[ " << i << " ] " << "GetFamilyName Status : " << ret << std::endl;
             if (Ok == ret) {
                 // LOG(DEBUG) << "[ " << i << " ] " << tmpFamilyName << std::endl;
-                TString strFamilyName(tmpFamilyName);
+                hellop::TString strFamilyName(tmpFamilyName);
                 fontFamilyList.push_back(strFamilyName);
             }
         }
@@ -129,8 +129,8 @@ std::list<TString> GdiplusPrintEngine::getSystemFontFamilys() {
     return fontFamilyList;
 }
 
-std::list<TString> GdiplusPrintEngine::getLocalPrinters() {
-    std::list<TString> printerList;
+std::list<hellop::TString> hellop::GdiplusPrintEngine::getLocalPrinters() {
+    std::list<hellop::TString> printerList;
 
     LPBYTE pPrinterEnum;
     DWORD pcbNeeded, pcbReturned;

@@ -2,7 +2,7 @@
 
 #include "easylogging++.h"
 
-BarcodeRender::BarcodeRender(Graphics* graphics) {
+hellop::BarcodeRender::BarcodeRender(Graphics* graphics) {
     m_pGraphics = graphics;
     
     m_pZintSymbol = ZBarcode_Create();
@@ -11,14 +11,14 @@ BarcodeRender::BarcodeRender(Graphics* graphics) {
     }
 }
 
-BarcodeRender::~BarcodeRender() {
+hellop::BarcodeRender::~BarcodeRender() {
     if (NULL!=m_pZintSymbol) {
         ZBarcode_Delete(m_pZintSymbol);
     }
 }
 
 // 绘制Barcode，第一个参数symbology的值为：zint_symbol.symbology,具体请参考zint。rotateAngle旋转的角度，支持:0,90,180,270.autoZoom是否自动缩放,为true且width/height大于1时,将自动缩放条码以按width/height完整显示
-int BarcodeRender::drawBarcode(int symbology, TString content, int x, int y, int width, int height, int rotateAngle, bool autoZoom) {
+int hellop::BarcodeRender::drawBarcode(int symbology, TString content, int x, int y, int width, int height, int rotateAngle, bool autoZoom) {
     if (NULL!=m_pZintSymbol) {
         ZBarcode_Clear(m_pZintSymbol);
 
@@ -48,14 +48,14 @@ int BarcodeRender::drawBarcode(int symbology, TString content, int x, int y, int
     return -1;
 }
 
-int BarcodeRender::drawCode128Auto(TString content, int x, int y, int width, int height, int rotateAngle, bool autoZoom) {
+int hellop::BarcodeRender::drawCode128Auto(TString content, int x, int y, int width, int height, int rotateAngle, bool autoZoom) {
     return drawBarcode(BARCODE_CODE128, content, x, y, width, height, rotateAngle, autoZoom);
 }
 
-int BarcodeRender::drawCode128B(TString content, int x, int y, int width, int height, int rotateAngle, bool autoZoom) {
+int hellop::BarcodeRender::drawCode128B(TString content, int x, int y, int width, int height, int rotateAngle, bool autoZoom) {
     return drawBarcode(BARCODE_CODE128B, content, x, y, width, height, rotateAngle, autoZoom);
 }
 
-int BarcodeRender::drawQrcode(TString content, int x, int y, int width, int height, bool autoZoom) {
+int hellop::BarcodeRender::drawQrcode(TString content, int x, int y, int width, int height, bool autoZoom) {
     return drawBarcode(BARCODE_QRCODE, content, x, y, width, height, 0, autoZoom);
 }
