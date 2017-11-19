@@ -6,7 +6,8 @@ hellop::ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
 	m_hdcPrinter = hdcPrinter;
 	StartPage(m_hdcPrinter);
 	m_pGraphics = new Graphics(m_hdcPrinter);
-	m_pGraphics->SetPageUnit(UnitMillimeter); // 设置页面尺寸的单位为：毫米
+	// m_pGraphics->SetPageUnit(UnitMillimeter); // 设置页面尺寸的单位为：毫米
+	m_pGraphics->SetPageUnit(UnitPixel); // 设置页面尺寸的单位为：毫米
 
 	m_pDukContext = duk_create_heap_default();
 	if (!m_pDukContext) {
@@ -105,26 +106,48 @@ void hellop::ECMAScriptProcessor::push_file_as_string(std::string fileName) {
 
 void hellop::ECMAScriptProcessor::addText(std::string text, double x, double y, std::string style) {
 	if (NULL!=m_pGraphics) {
-		PointF pointF((REAL)x, (REAL)y);
+		// 将毫米转为像素
+		int pixelX = mm_to_px(x, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY = mm_to_px(y, dpi_to_ppi(m_pGraphics->GetDpiY()));
+
+		PointF pointF((REAL)pixelX, (REAL)pixelY);
 		m_pGraphics->DrawString(todop_to_wstring(text).c_str(), -1, m_pDefaultFont, pointF, m_pDefaultBrush);
 	}
 }
 
 void hellop::ECMAScriptProcessor::addLine(double x1, double y1, double x2, double y2, std::string style) {
 	if (NULL != m_pGraphics) {
-		m_pGraphics->DrawLine(m_pDefaultPen, (REAL)x1, (REAL)y1, (REAL)x2, (REAL)y2);
+		// 将毫米转为像素
+		int pixelX1 = mm_to_px(x1, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY1 = mm_to_px(y1, dpi_to_ppi(m_pGraphics->GetDpiY()));
+		int pixelX2 = mm_to_px(x2, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY2 = mm_to_px(y2, dpi_to_ppi(m_pGraphics->GetDpiY()));
+
+		m_pGraphics->DrawLine(m_pDefaultPen, (REAL)pixelX1, (REAL)pixelY1, (REAL)pixelX2, (REAL)pixelY2);
 	}
 }
 
 void hellop::ECMAScriptProcessor::addRectangle(double x1, double y1, double x2, double y2, std::string style) {
 	if (NULL != m_pGraphics) {
-		m_pGraphics->DrawRectangle(m_pDefaultPen, (REAL)x1, (REAL)y1, (REAL)x2, (REAL)y2);
+		// 将毫米转为像素
+		int pixelX1 = mm_to_px(x1, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY1 = mm_to_px(y1, dpi_to_ppi(m_pGraphics->GetDpiY()));
+		int pixelX2 = mm_to_px(x2, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY2 = mm_to_px(y2, dpi_to_ppi(m_pGraphics->GetDpiY()));
+
+		m_pGraphics->DrawRectangle(m_pDefaultPen, (REAL)pixelX1, (REAL)pixelY1, (REAL)pixelX2, (REAL)pixelY2);
 	}
 }
 
 void hellop::ECMAScriptProcessor::addEllipse(double x1, double y1, double x2, double y2, std::string style) {
 	if (NULL != m_pGraphics) {
-		m_pGraphics->DrawEllipse(m_pDefaultPen, (REAL)x1, (REAL)y1, (REAL)x2, (REAL)y2);
+		// 将毫米转为像素
+		int pixelX1 = mm_to_px(x1, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY1 = mm_to_px(y1, dpi_to_ppi(m_pGraphics->GetDpiY()));
+		int pixelX2 = mm_to_px(x2, dpi_to_ppi(m_pGraphics->GetDpiX()));
+		int pixelY2 = mm_to_px(y2, dpi_to_ppi(m_pGraphics->GetDpiY()));
+
+		m_pGraphics->DrawEllipse(m_pDefaultPen, (REAL)pixelX1, (REAL)pixelY1, (REAL)pixelX2, (REAL)pixelY2);
 	}
 }
 
@@ -146,7 +169,7 @@ void hellop::ECMAScriptProcessor::addQrCode(std::string text, double x, double y
 		int pixelY = mm_to_px(y, dpi_to_ppi(m_pGraphics->GetDpiY()));
 
 		BarcodeRender barcodeRender(m_pGraphics);
-		barcodeRender.drawQrcode(todop_to_wstring(text), x, y);
+		barcodeRender.drawQrcode(todop_to_wstring(text), pixelX, pixelY);
 	}
 }
 
@@ -173,7 +196,8 @@ void hellop::ECMAScriptProcessor::addNewPage() {
 	StartPage(m_hdcPrinter);
 	
 	m_pGraphics = new Graphics(m_hdcPrinter);
-	m_pGraphics->SetPageUnit(UnitMillimeter); // 设置页面尺寸的单位为：毫米
+	// m_pGraphics->SetPageUnit(UnitMillimeter); // 设置页面尺寸的单位为：毫米
+	m_pGraphics->SetPageUnit(UnitPixel); // 设置页面尺寸的单位为：毫米
 }
 
 int hellop::ECMAScriptProcessor::doRun() {
