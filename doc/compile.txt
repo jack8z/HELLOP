@@ -21,4 +21,4 @@
 > cmake .. -G"Visual Studio 14 2015 Win64"
 
 然后运行以下命令：
-> msbuild.exe DemoDuiLib.sln /t:Rebuild /p:Configuration=Release
+> msbuild.exe HELLOP.sln /t:Rebuild /p:Configuration=Release
