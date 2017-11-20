@@ -36,10 +36,12 @@ namespace hellop {
 
     private:
         void initInstance(TString printerName); // 初始化实例
+        void logErrorMsg(LPTSTR lpszFunction);
 
     private:
         TString m_printerName; // 打印机名称
         HDC m_hdcPrinter; // 打印机上下文件
+        HANDLE m_printerHandle; // 打印机句柄
         ULONG_PTR m_gdiplusToken;
     };
 }

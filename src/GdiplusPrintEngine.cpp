@@ -53,6 +53,37 @@ hellop::GdiplusPrintEngine::~GdiplusPrintEngine() {
     }
 }
 
+void hellop::GdiplusPrintEngine::logErrorMsg(LPTSTR lpszFunction) { 
+    // Retrieve the system error message for the last-error code
+    LPVOID lpMsgBuf;
+    LPVOID lpDisplayBuf;
+    DWORD dw = GetLastError(); 
+
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL );
+
+    // Display the error message and exit the process
+
+    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
+        (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR)); 
+    StringCchPrintf((LPTSTR)lpDisplayBuf, 
+        LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+        TEXT("%s Failed with Error %d: %s"), 
+        lpszFunction, dw, lpMsgBuf); 
+    LOG(ERROR) << (LPCTSTR)lpDisplayBuf << std::endl;
+
+    LocalFree(lpMsgBuf);
+    LocalFree(lpDisplayBuf);
+    ExitProcess(dw); 
+}
+
 
 int hellop::GdiplusPrintEngine::doPrint() {
     DOCINFO docInfo;
@@ -73,10 +104,16 @@ int hellop::GdiplusPrintEngine::doPrint() {
             return -2;
         }
 
+        // Get a printer handle.
+        if (!OpenPrinterW(const_cast<LPWSTR>(m_printerName.c_str()), &m_printerHandle, NULL)) {
+            logErrorMsg(_T("OpenPrinter"));
+            return -3;
+        }
+
         int startResult = StartDoc(m_hdcPrinter, &docInfo);
 		if (startResult < 1) {
             LOG(DEBUG) << "StartDoc Failure : " << startResult << std::endl;
-			return -3;
+			return -10;
 		}
 
 		// 解析ECMAScript，并执行渲染指令
@@ -87,11 +124,12 @@ int hellop::GdiplusPrintEngine::doPrint() {
         EndDoc(m_hdcPrinter);
 
         if (m_hdcPrinter) {
+            ClosePrinter(m_printerHandle);
             DeleteDC(m_hdcPrinter);
         }
 
         if (0!=scriptRet) {
-            return -4;
+            return -100;
         }
     }
 
