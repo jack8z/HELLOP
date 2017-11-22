@@ -96,18 +96,90 @@ int hellop::GdiplusPrintEngine::doPrint() {
         LOG(ERROR) << "No Printer" << std::endl;
         return -1;
     } else {
+		// Get a printer handle.
+		if (!OpenPrinterW(const_cast<LPWSTR>(m_printerName.c_str()), &m_printerHandle, NULL)) {
+			logErrorMsg(_T("OpenPrinter"));
+			return -3;
+		}
+
+		LPDEVMODEW   pDevMode;
+		DWORD       dwNeeded, dwRet;
+
+		/*
+		* Step 1:
+		* Allocate a buffer of the correct size.
+		*/
+		dwNeeded = DocumentPropertiesW(NULL,
+			m_printerHandle,       /* Handle to our printer. */
+			const_cast<LPWSTR>(m_printerName.c_str()),        /* Name of the printer. */
+			NULL,           /* Asking for size, so */
+			NULL,           /* these are not used. */
+			0);             /* Zero returns buffer size. */
+		pDevMode = (LPDEVMODEW)malloc(dwNeeded);
+
+		/*
+		* Step 2:
+		* Get the default DevMode for the printer and
+		* modify it for your needs.
+		*/
+		dwRet = DocumentPropertiesW(NULL,
+			m_printerHandle,
+			const_cast<LPWSTR>(m_printerName.c_str()),
+			pDevMode,       /* The address of the buffer to fill. */
+			NULL,           /* Not using the input buffer. */
+			DM_OUT_BUFFER); /* Have the output buffer filled. */
+		if (dwRet != IDOK)
+		{
+			/* If failure, cleanup and return failure. */
+			free(pDevMode);
+			ClosePrinter(m_printerHandle);
+			return -4;
+		}
+
+		/*
+		* Make changes to the DevMode which are supported.
+		*/
+		if (pDevMode->dmFields & DM_ORIENTATION) {
+			/* If the printer supports paper orientation, set it.*/
+			pDevMode->dmOrientation = DMORIENT_LANDSCAPE;
+		}
+		if (pDevMode->dmFields & DM_DUPLEX) {
+			/* If it supports duplex printing, use it. */
+			pDevMode->dmDuplex = DMDUP_HORIZONTAL;
+		}
+		if (pDevMode->dmFields & DM_PAPERSIZE) {
+			pDevMode->dmFields = pDevMode->dmFields | DM_PAPERSIZE | DM_PAPERLENGTH | DM_PAPERWIDTH;
+			pDevMode->dmPaperSize = DMPAPER_USER; // 自定义纸张
+			pDevMode->dmPaperWidth = 1000; // 纸张的宽度，以0.1mm为单位
+			pDevMode->dmPaperLength = 1800; // 纸张的高度，以0.1mm为单位
+		}
+
+		/*
+		* Step 3:
+		* Merge the new settings with the old.
+		* This gives the driver an opportunity to update any private
+		* portions of the DevMode structure.
+		*/
+		dwRet = DocumentPropertiesW(NULL,
+			m_printerHandle,
+			const_cast<LPWSTR>(m_printerName.c_str()),
+			pDevMode,       /* Reuse our buffer for output. */
+			pDevMode,       /* Pass the driver our changes. */
+			DM_IN_BUFFER |  /* Commands to Merge our changes and */
+			DM_OUT_BUFFER); /* write the result. */
+
+		if (dwRet != IDOK) {
+			ClosePrinter(m_printerHandle);
+			free(pDevMode);
+			return -5;
+		}
+
         // Get a device context for the printer.
-        m_hdcPrinter = CreateDCW(NULL, m_printerName.c_str(), NULL, NULL);
+        m_hdcPrinter = CreateDCW(NULL, m_printerName.c_str(), NULL, pDevMode);
     
         if (!m_hdcPrinter) { // 获取打印机上下文失败
             LOG(ERROR) << "CreateDC Failure" << std::endl;
             return -2;
-        }
-
-        // Get a printer handle.
-        if (!OpenPrinterW(const_cast<LPWSTR>(m_printerName.c_str()), &m_printerHandle, NULL)) {
-            logErrorMsg(_T("OpenPrinter"));
-            return -3;
         }
 
         int startResult = StartDoc(m_hdcPrinter, &docInfo);
@@ -124,6 +196,7 @@ int hellop::GdiplusPrintEngine::doPrint() {
         EndDoc(m_hdcPrinter);
 
         if (m_hdcPrinter) {
+			free(pDevMode);
             ClosePrinter(m_printerHandle);
             DeleteDC(m_hdcPrinter);
         }
