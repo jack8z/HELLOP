@@ -36,7 +36,9 @@ namespace hellop {
 
     private:
         void initInstance(TString printerName); // 初始化实例
-        void logErrorMsg(LPTSTR lpszFunction);
+        void logErrorMsg(LPTSTR lpszFunction); // 记录调用指定函数的出错日志
+
+        std::list<TString> getPrinterForms(HANDLE printerHandle); // 获取指定打印机里的自定义纸张列表
 
     private:
         TString m_printerName; // 打印机名称

@@ -141,7 +141,8 @@ int hellop::GdiplusPrintEngine::doPrint() {
 		*/
 		if (pDevMode->dmFields & DM_ORIENTATION) {
 			/* If the printer supports paper orientation, set it.*/
-			pDevMode->dmOrientation = DMORIENT_LANDSCAPE;
+            pDevMode->dmOrientation = DMORIENT_LANDSCAPE; // 打印方向：横向
+            pDevMode->dmOrientation = DMORIENT_PORTRAIT; // 打印方向：纵向
 		}
 		if (pDevMode->dmFields & DM_DUPLEX) {
 			/* If it supports duplex printing, use it. */
@@ -149,7 +150,8 @@ int hellop::GdiplusPrintEngine::doPrint() {
 		}
 		if (pDevMode->dmFields & DM_PAPERSIZE) {
 			pDevMode->dmFields = pDevMode->dmFields | DM_PAPERSIZE | DM_PAPERLENGTH | DM_PAPERWIDTH;
-			pDevMode->dmPaperSize = DMPAPER_USER; // 自定义纸张
+			//pDevMode->dmPaperSize = DMPAPER_USER; // 自定义纸张，其值只能为0或DMPAPER-prefixed
+            pDevMode->dmPaperSize = 0; // 自定义纸张，只有为0时，下面两个参数（dmPaperWidth和dmPaperLength）才有效
 			pDevMode->dmPaperWidth = 1000; // 纸张的宽度，以0.1mm为单位
 			pDevMode->dmPaperLength = 1800; // 纸张的高度，以0.1mm为单位
 		}
@@ -187,6 +189,19 @@ int hellop::GdiplusPrintEngine::doPrint() {
             LOG(DEBUG) << "StartDoc Failure : " << startResult << std::endl;
 			return -10;
 		}
+
+        // 测试 +++
+        hellop::TString formsBuff;
+        std::list<hellop::TString> formList = getPrinterForms(m_hdcPrinter);
+        for (std::list<TString>::iterator it=formList.begin(); it!=formList.end(); ++it) {
+            formsBuff += *it;
+            if (it!=formList.end()) {
+                formsBuff += L",";
+            }
+        }
+
+        LOG(DEBUG) << formsBuff.c_str() << endl;
+        // 测试 ---
 
 		// 解析ECMAScript，并执行渲染指令
         ECMAScriptProcessor *pScriptProcessor = new ECMAScriptProcessor(m_hdcPrinter);
@@ -272,4 +287,34 @@ std::list<hellop::TString> hellop::GdiplusPrintEngine::getLocalPrinters() {
     }
 
     return printerList;
+}
+
+std::list<hellop::TString> hellop::GdiplusPrintEngine::getPrinterForms(HANDLE printerHandle) {
+    std::list<hellop::TString> formList;
+
+    DWORD pcbNeeded, pcbReturned;
+
+    if(!EnumForms(printerHandle, 1, NULL, 0, &pcbNeeded, &pcbReturned)){
+        LOG(ERROR) << "EnumForms Error " << std::endl;
+        return formList;
+    }
+
+    FORM_INFO_1 *pFormOne = NULL;
+
+    try {
+        if (EnumForms(printerHandle, 1, LPBYTE(pFormOne), pcbNeeded, &pcbNeeded, &pcbReturned)) {
+            throw exception("Could not Enumerate forms");
+        }
+
+        if (pcbReturned>0) {
+            for (unsigned int i=0; i<pcbReturned; i++) {
+                std::string formName(pFormOne[i].pName);
+                formList.push_back(todop_to_wstring(formName));
+            }
+        }
+    } catch (...) {
+        LOG(ERROR) << "EnumForms Error " << std::endl;
+    }
+
+    return formList;
 }
