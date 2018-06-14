@@ -1,6 +1,5 @@
 ﻿#include "ECMAScriptProcessor.h"
 #include "BarcodeRender.h"
-#include "HtmlRender.h"
 
 hellop::ECMAScriptProcessor::ECMAScriptProcessor(HDC hdcPrinter) {
 	m_hdcPrinter = hdcPrinter;
@@ -62,7 +61,6 @@ int hellop::ECMAScriptProcessor::initDuktape() {
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addBarCode, "addBarCode");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addQrCode, "addQrCode");
 		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addNewPage, "addNewPage");
-		dukglue_register_method(m_pDukContext, &ECMAScriptProcessor::addHtml, "addHtml");
 	} catch(...) {
 		LOG(ERROR) << "Failed to register c++ object and method!!"  << std::endl;
 		return -1;
@@ -170,20 +168,6 @@ void hellop::ECMAScriptProcessor::addQrCode(std::string text, double x, double y
 
 		BarcodeRender barcodeRender(m_pGraphics);
 		barcodeRender.drawQrcode(todop_to_wstring(text), pixelX, pixelY);
-	}
-}
-
-void hellop::ECMAScriptProcessor::addHtml(std::string html, double x, double y, double width, double height) {
-	if (NULL != m_pGraphics) {
-		// 将毫米转为像素
-		int pixelX = mm_to_px(x, dpi_to_ppi(m_pGraphics->GetDpiX()));
-		int pixelWidth = mm_to_px(width, dpi_to_ppi(m_pGraphics->GetDpiX()));
-		int pixelY = mm_to_px(y, dpi_to_ppi(m_pGraphics->GetDpiY()));
-		int pixelHeight = mm_to_px(height, dpi_to_ppi(m_pGraphics->GetDpiY()));
-
-		Paper paper(paper_type_a4);
-		HtmlRender htmlRender(m_hdcPrinter, paper);
-		htmlRender.drawHtml(todop_to_wstring(html), pixelX, pixelY, pixelWidth, pixelHeight);
 	}
 }
 
